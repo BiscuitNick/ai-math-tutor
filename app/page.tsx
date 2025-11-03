@@ -90,13 +90,39 @@ export default function Home() {
             </Card>
           </Link>
 
+          {/* Problem Input Test */}
+          <Link href="/test-problem-input">
+            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-green-200 dark:border-green-900">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <CardTitle>Problem Input</CardTitle>
+                  <Badge variant="default">Task 5</Badge>
+                </div>
+                <CardDescription>
+                  Test problem input system with text and image upload
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>• Text input with symbols</li>
+                  <li>• Image upload (drag-drop)</li>
+                  <li>• Firebase Storage</li>
+                  <li>• Input validation</li>
+                </ul>
+                <Badge variant="outline" className="mt-3 text-xs">
+                  New!
+                </Badge>
+              </CardContent>
+            </Card>
+          </Link>
+
           {/* Firebase Test */}
           <Link href="/firebase-test">
             <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <CardTitle>Firebase Test</CardTitle>
-                  <Badge variant="outline">Task 1</Badge>
+                  <Badge variant="outline">Task 2</Badge>
                 </div>
                 <CardDescription>
                   Test Firebase connection and authentication
@@ -141,7 +167,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Task 5: Problem Input System</span>
-                  <Badge variant="outline">Pending</Badge>
+                  <Badge variant="secondary">Complete</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Task 6: OpenAI Vision (OCR)</span>
