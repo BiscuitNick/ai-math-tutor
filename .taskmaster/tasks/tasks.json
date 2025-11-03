@@ -310,10 +310,10 @@
       },
       {
         "id": 6,
-        "title": "Integrate OpenAI Vision API for image parsing",
-        "description": "Implement OCR functionality to extract mathematical problems from uploaded images using GPT-4 Vision",
-        "details": "Create app/api/parse-image/route.ts endpoint accepting multipart form data. Implement OpenAI Vision API integration using gpt-4-vision-preview model. Process uploaded images with medium detail mode for cost optimization. Extract problem text with confidence scoring. Return parsed text for user verification and editing. Handle various textbook formatting styles. Implement proper error handling for failed parsing. Cache parsed results in Firestore to prevent reprocessing.",
-        "testStrategy": "Test with sample math problem images from textbooks. Verify accuracy of text extraction. Test with poor quality images. Ensure proper error messages for unparseable content. Verify caching prevents duplicate API calls.",
+        "title": "Integrate OpenAI Vision API for image parsing using Server Actions",
+        "description": "Implement OCR functionality to extract mathematical problems from uploaded images using GPT-4 Vision with Next.js Server Actions",
+        "details": "Create app/actions/parse-image.ts Server Action using 'use server' directive. Handle FormData directly (no multipart parsing needed). Implement OpenAI Vision API integration using gpt-4-vision-preview model. Process uploaded images with medium detail mode for cost optimization. Extract problem text with confidence scoring. Return structured error objects (not throw) for proper client-side handling. Handle various textbook formatting styles. Implement proper error handling for failed parsing. Cache parsed results in Firestore to prevent reprocessing. Use useActionState and useFormStatus hooks on client for state management and loading indicators.",
+        "testStrategy": "Test with sample math problem images from textbooks. Verify accuracy of text extraction. Test with poor quality images. Ensure proper error messages for unparseable content. Verify caching prevents duplicate API calls. Test useActionState integration shows proper loading and error states.",
         "priority": "medium",
         "dependencies": [
           4,
@@ -323,45 +323,45 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Create API route with multipart form handling",
-            "description": "Set up Next.js API route at app/api/parse-image/route.ts to handle multipart form data uploads for image processing",
+            "title": "Create Server Action with FormData handling",
+            "description": "Set up Next.js Server Action at app/actions/parse-image.ts using 'use server' directive to handle FormData uploads for image processing",
             "dependencies": [],
-            "details": "Create POST endpoint in app/api/parse-image/route.ts using Next.js 13+ route handlers. Implement multipart/form-data parsing to extract uploaded image files. Add file validation for image types (jpg, png, webp) and size limits (max 5MB). Convert uploaded file to base64 format for Vision API compatibility. Set up proper CORS headers and request validation. Return appropriate HTTP status codes for different scenarios.",
+            "details": "Create app/actions/parse-image.ts file with 'use server' directive at the top. Export async function parseImageAction(formData: FormData) that extracts uploaded image files from FormData using formData.get('image'). Add file validation for image types (jpg, png, webp) and size limits (max 5MB). Convert uploaded file to base64 format for Vision API compatibility. Return structured response objects with success/error states instead of throwing errors. Include proper TypeScript types for return values matching useActionState pattern: { success: boolean; data?: ParsedImage; error?: string }.",
             "status": "pending",
-            "testStrategy": "Test file upload with various image formats and sizes. Verify rejection of non-image files. Test size limit enforcement. Ensure proper error responses for invalid requests."
+            "testStrategy": "Test Server Action with various image formats and sizes. Verify rejection of non-image files returns error object. Test size limit enforcement. Ensure proper error response structure for invalid requests."
           },
           {
             "id": 2,
-            "title": "Implement OpenAI Vision API integration",
-            "description": "Configure and integrate GPT-4 Vision API with proper authentication and parameters for mathematical text extraction",
+            "title": "Implement OpenAI Vision API integration in Server Action",
+            "description": "Configure and integrate GPT-4 Vision API within the Server Action with proper authentication and parameters for mathematical text extraction",
             "dependencies": [
               1
             ],
-            "details": "Set up OpenAI client with API key from environment variables. Configure Vision API call with gpt-4-vision-preview model using medium detail mode for cost optimization. Structure prompt to specifically extract mathematical problems and equations from images. Implement proper request formatting with base64 image data. Add timeout handling for long-running requests. Configure temperature and max_tokens parameters for consistent results.",
+            "details": "Within the Server Action, set up OpenAI client with API key from process.env.OPENAI_API_KEY. Configure Vision API call with gpt-4-vision-preview model using medium detail mode for cost optimization. Structure prompt to specifically extract mathematical problems and equations from images. Implement proper request formatting with base64 image data. Add timeout handling for long-running requests using AbortController. Configure temperature and max_tokens parameters for consistent results. Return error objects for API failures instead of throwing.",
             "status": "pending",
-            "testStrategy": "Test with sample math textbook images. Verify API authentication works. Test timeout handling with slow responses. Ensure consistent extraction quality."
+            "testStrategy": "Test with sample math textbook images. Verify API authentication works. Test timeout handling with slow responses. Ensure consistent extraction quality. Verify error objects are returned properly."
           },
           {
             "id": 3,
-            "title": "Add text extraction with confidence scoring",
-            "description": "Process Vision API response to extract mathematical text with confidence scores and handle various textbook formatting styles",
+            "title": "Add text extraction with confidence scoring in Server Action",
+            "description": "Process Vision API response within Server Action to extract mathematical text with confidence scores and handle various textbook formatting styles",
             "dependencies": [
               2
             ],
-            "details": "Parse Vision API response to extract mathematical problem text. Implement confidence scoring algorithm based on response clarity and completeness. Handle various mathematical notation formats (fractions, exponents, special symbols). Create text normalization for consistent output format. Add detection for multiple problems in single image. Return structured response with extracted text, confidence score, and detected problem boundaries. Handle edge cases like handwritten text or poor image quality.",
+            "details": "Within the Server Action, parse Vision API response to extract mathematical problem text. Implement confidence scoring algorithm based on response clarity and completeness. Handle various mathematical notation formats (fractions, exponents, special symbols). Create text normalization for consistent output format. Add detection for multiple problems in single image. Return structured response with extracted text, confidence score, and detected problem boundaries in the Server Action response object. Handle edge cases like handwritten text or poor image quality with appropriate error messages in response.",
             "status": "pending",
-            "testStrategy": "Test with diverse textbook styles and formats. Verify confidence scoring accuracy. Test with handwritten problems. Ensure special mathematical symbols are preserved."
+            "testStrategy": "Test with diverse textbook styles and formats. Verify confidence scoring accuracy. Test with handwritten problems. Ensure special mathematical symbols are preserved. Verify response structure matches useActionState expectations."
           },
           {
             "id": 4,
-            "title": "Implement Firestore caching for parsed results",
-            "description": "Create caching mechanism in Firestore to store and retrieve previously parsed images to prevent duplicate API calls",
+            "title": "Implement Firestore caching within Server Action and client-side integration",
+            "description": "Create caching mechanism in Firestore within the Server Action and integrate with client using useActionState and useFormStatus hooks",
             "dependencies": [
               3
             ],
-            "details": "Generate unique hash for each uploaded image using crypto library. Create Firestore collection 'parsed_images' with document structure containing image hash, extracted text, confidence score, and timestamp. Implement cache lookup before Vision API call using image hash. Store successful parsing results with 30-day TTL. Add cache invalidation mechanism for admin override. Include cache hit/miss in API response metadata. Handle Firestore connection errors gracefully with fallback to direct API call.",
+            "details": "Within the Server Action, generate unique hash for each uploaded image using crypto library. Create Firestore collection 'parsed_images' with document structure containing image hash, extracted text, confidence score, and timestamp. Implement cache lookup before Vision API call using image hash. Store successful parsing results with 30-day TTL. Add cache hit/miss in response metadata. Handle Firestore connection errors gracefully with fallback to direct API call. On the client side, create component using useActionState to manage Server Action state and useFormStatus for loading indicators. Implement form submission that calls the Server Action. Display loading states, error messages, and success results based on the action state.",
             "status": "pending",
-            "testStrategy": "Test cache hits with duplicate image uploads. Verify TTL expiration works correctly. Test cache miss scenarios. Ensure Firestore errors don't break functionality."
+            "testStrategy": "Test cache hits with duplicate image uploads. Verify TTL expiration works correctly. Test cache miss scenarios. Ensure Firestore errors don't break functionality. Test client-side integration with useActionState shows proper loading/error/success states. Verify useFormStatus displays loading indicator during submission."
           }
         ]
       },
@@ -421,7 +421,7 @@
           2,
           4
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -429,7 +429,7 @@
             "description": "Create the complete Firestore data structure for storing user sessions with proper collections and subcollections",
             "dependencies": [],
             "details": "Design users/{userId}/sessions/{sessionId} collection with fields: problemText (string), problemType (enum: algebra/geometry/word-problem), status (enum: in-progress/completed/abandoned), createdAt/updatedAt (timestamps), turnCount (number), hints (array). Create turns subcollection with fields: speaker (user/assistant), message (string), timestamp, hintLevel (number). Define TypeScript interfaces for Session and Turn types. Set up Firestore security rules for authenticated user access only.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test schema creation with sample data, verify field types and constraints, test security rules with different auth states"
           },
           {
@@ -440,7 +440,7 @@
               1
             ],
             "details": "Create hooks/useSession.ts with useCreateSession hook that generates unique session IDs and initializes session documents. Implement useCurrentSession for retrieving active session data with real-time updates. Add useSessionList for fetching user's session history. Create utility functions for session ID generation using Firebase's auto-generated IDs. Include proper TypeScript types and error handling for all Firebase operations. Add session caching to minimize Firestore reads.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test hook behavior with React Testing Library, mock Firestore operations, verify real-time updates work correctly"
           },
           {
@@ -452,7 +452,7 @@
               2
             ],
             "details": "Create addTurn function to append messages to turns subcollection with automatic timestamp generation. Implement getTurns query with pagination support (20 turns per page). Add real-time listener for new turns using onSnapshot. Create turn validation to ensure proper speaker alternation (user/assistant). Implement turn counter increment on each addition. Add batch write support for multiple turns. Include optimistic updates for better UX during turn submission.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test turn addition with concurrent writes, verify pagination works correctly, test real-time updates across multiple clients"
           },
           {
@@ -464,7 +464,7 @@
               3
             ],
             "details": "Create updateSessionStatus function with validation for allowed transitions (in-progress -> completed/abandoned only). Implement automatic status change to 'in-progress' on first turn. Add session completion triggers: manual completion button, 50-turn limit reached, or 30-minute inactivity. Track session metadata: last activity timestamp, total duration, hint count, completion rate. Create abandoned session detection for sessions inactive over 24 hours. Add session resumption capability for in-progress sessions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test all status transition paths, verify automatic triggers work, test session resumption after page refresh"
           },
           {
@@ -476,7 +476,7 @@
               4
             ],
             "details": "Implement turn counter that triggers completion at 50 turns with warning at 45 turns. Create session finalization function that calculates final statistics: total duration, turns used, hints provided, completion status. Add graceful session closure with final summary message to user. Implement cleanup for abandoned sessions older than 7 days. Create session export functionality for completed sessions (JSON format). Add session analytics tracking for completion rates and average turn counts.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test automatic completion at 50 turns, verify warning appears at 45 turns, test session statistics calculation accuracy"
           }
         ]
@@ -755,7 +755,7 @@
     ],
     "metadata": {
       "created": "2025-11-03T17:47:32.516Z",
-      "updated": "2025-11-03T21:21:20.390Z",
+      "updated": "2025-11-03T21:37:23.279Z",
       "description": "Tasks for master context"
     }
   }
