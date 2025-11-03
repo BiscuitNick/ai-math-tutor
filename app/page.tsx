@@ -204,6 +204,10 @@ export default function Home() {
                   <span className="text-sm font-medium">Task 8: Session Management</span>
                   <Badge variant="secondary">Complete</Badge>
                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Task 9: History Sidebar</span>
+                  <Badge variant="secondary">Complete</Badge>
+                </div>
               </div>
             </CardContent>
           </Card>

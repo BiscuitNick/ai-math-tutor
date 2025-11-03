@@ -3,6 +3,8 @@
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { useChat } from "@/hooks/useChat";
 import type { Message } from "@/components/chat/MessageBubble";
+import { HistorySidebar } from "@/components/HistorySidebar";
+import type { Session } from "@/lib/types/session";
 
 export default function TestAIChatPage() {
   const { messages, append, isLoading, error } = useChat({
@@ -28,8 +30,31 @@ export default function TestAIChatPage() {
     });
   };
 
+  const handleSelectSession = (session: Session) => {
+    console.log("Selected session:", session);
+    // TODO: Load session history into chat
+    // This will be implemented in a future task when we integrate session resuming
+  };
+
+  const handleNewSession = () => {
+    console.log("Starting new session");
+    // TODO: Clear current chat and start fresh
+    // This will be implemented in a future task
+  };
+
   return (
     <div className="h-screen w-full flex flex-col">
+      {/* Header with History Sidebar */}
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-3">
+          <HistorySidebar
+            onSelectSession={handleSelectSession}
+            onNewSession={handleNewSession}
+          />
+          <h1 className="text-xl font-semibold">AI Math Tutor</h1>
+        </div>
+      </div>
+
       {error && (
         <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3">
           <div className="flex items-start gap-2">

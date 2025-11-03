@@ -554,7 +554,7 @@
           "1",
           "8"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -562,9 +562,10 @@
             "description": "Build the main sidebar component using shadcn Sheet component with responsive design, toggle button, and proper layout structure for desktop and mobile views",
             "dependencies": [],
             "details": "Create components/HistorySidebar.tsx using shadcn Sheet component. Implement toggle button with menu icon that opens/closes sidebar. Set up responsive breakpoints - permanent sidebar on desktop (lg+), drawer on mobile. Create header section with 'Session History' title and 'New Problem' button. Set up main content area with ScrollArea for session list. Configure Sheet props for slide animation from left on mobile. Add proper z-index layering and backdrop for mobile drawer mode.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test sidebar toggle functionality on different screen sizes. Verify Sheet animation on mobile devices. Test backdrop click to close on mobile. Ensure proper responsive behavior at breakpoints.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-11-03T22:13:08.655Z"
           },
           {
             "id": 2,
@@ -574,9 +575,10 @@
               1
             ],
             "details": "Create SessionList component rendering Card components for each session. Display problem text preview (first 100 chars), status badge (in-progress/completed/abandoned), timestamp with relative time format, and turn count. Implement useSessions hook to fetch sessions from Firestore with pagination using limit(20) and startAfter cursor. Add 'Load More' button at bottom when more sessions available. Include loading skeleton states during fetch. Format timestamps using date-fns library for 'X minutes ago' style display.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test session cards display all required information correctly. Verify pagination loads exactly 20 items per page. Test 'Load More' functionality with various session counts. Ensure loading states appear during data fetching.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-11-03T22:13:08.657Z"
           },
           {
             "id": 3,
@@ -586,9 +588,10 @@
               2
             ],
             "details": "Add shadcn Input component at top of sidebar for search functionality. Implement local filtering of loaded sessions based on search query matching problem text. Create filter toggle buttons using shadcn Toggle or Badge components for status filtering. Implement combined search and filter logic in useFilteredSessions hook. Add clear filters button when filters are active. Display 'No sessions found' message when filters return empty results. Debounce search input with 300ms delay to optimize performance.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test search functionality with various query strings. Verify filter toggles work independently and combined. Test clear filters resets all filters. Ensure search debouncing prevents excessive filtering.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-11-03T22:13:08.658Z"
           },
           {
             "id": 4,
@@ -598,14 +601,16 @@
               3
             ],
             "details": "Add onClick handler to session cards to expand and show full conversation history in modal or expanded view. Create SessionView component displaying all conversation turns with proper formatting. Implement 'Resume Session' button for in-progress sessions that loads session context into main chat interface. Add 'View Only' mode for completed sessions showing read-only conversation history. Handle session state restoration including problem text, conversation turns, and current step. Create smooth transition when resuming session to main chat area.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test session card click opens full conversation view. Verify resume button only appears for in-progress sessions. Test session context properly loads when resumed. Ensure completed sessions are read-only.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-11-03T22:13:08.659Z"
           }
         ],
         "complexity": 5,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Break down into: 1) Create HistorySidebar with Sheet component for mobile responsiveness, 2) Implement session list with pagination and status badges, 3) Add search and filter functionality, 4) Implement resume session feature"
+        "expansionPrompt": "Break down into: 1) Create HistorySidebar with Sheet component for mobile responsiveness, 2) Implement session list with pagination and status badges, 3) Add search and filter functionality, 4) Implement resume session feature",
+        "updatedAt": "2025-11-03T22:13:08.659Z"
       },
       {
         "id": "10",
@@ -849,9 +854,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-11-03T22:07:06.467Z",
+      "lastModified": "2025-11-03T22:13:08.659Z",
       "taskCount": 12,
-      "completedCount": 8,
+      "completedCount": 9,
       "tags": [
         "master"
       ]
