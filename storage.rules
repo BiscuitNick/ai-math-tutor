@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to validate file size (5MB = 5 * 1024 * 1024 bytes)
+    function isValidSize() {
+      return request.resource.size <= 5 * 1024 * 1024;
+    }
+
+    // Helper function to validate file type (JPG, PNG, WEBP)
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    // User uploads - images for math problems
+    match /users/{userId}/uploads/{imageId} {
+      // Allow read if authenticated (for viewing uploaded images)
+      allow read: if isAuthenticated();
+
+      // Allow write only if:
+      // 1. User is authenticated
+      // 2. User owns the file (userId matches auth.uid)
+      // 3. File size is under 5MB
+      // 4. File type is JPG, PNG, or WEBP
+      allow write: if isAuthenticated()
+                   && request.auth.uid == userId
+                   && isValidSize()
+                   && isValidImageType();
+    }
+
+    // Deny all other access by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
