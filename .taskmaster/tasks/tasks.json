@@ -2,7 +2,7 @@
   "master": {
     "tasks": [
       {
-        "id": 1,
+        "id": "1",
         "title": "Set up shadcn/ui and core UI components",
         "description": "Install and configure shadcn/ui with Tailwind CSS, then set up essential UI components needed for the chat interface",
         "details": "Execute: npx shadcn@latest init -y with New York style, neutral color. Install core components: Button, Card, Input, Textarea, ScrollArea, Alert, Toast, Skeleton, Badge, Sheet, Tabs, Popover, Tooltip, Dialog. Configure the components directory structure at @/components. Update globals.css to integrate shadcn's CSS variables. Test that all components render correctly with proper theming.",
@@ -18,7 +18,8 @@
             "dependencies": [],
             "details": "Execute 'npx shadcn@latest init -y' with New York style and neutral color options. Verify that components.json is created with correct paths pointing to @/components. Update globals.css to include shadcn CSS variables for theming. Ensure the configuration works with the existing Tailwind v4 setup in the project. Set up proper TypeScript path aliases in tsconfig.json if not already configured.",
             "status": "done",
-            "testStrategy": "Verify components.json exists with correct configuration. Check that globals.css includes CSS variables. Test that @/components path alias resolves correctly. Create a simple test component to verify theming variables are applied."
+            "testStrategy": "Verify components.json exists with correct configuration. Check that globals.css includes CSS variables. Test that @/components path alias resolves correctly. Create a simple test component to verify theming variables are applied.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -29,7 +30,8 @@
             ],
             "details": "Run shadcn add commands for each component: Button, Card, Input, Textarea, ScrollArea, Alert, Toast, Skeleton, Badge, Sheet, Tabs, Popover, Tooltip, and Dialog. Verify each component is properly installed in the components/ui directory. Check that all component dependencies are resolved. Ensure proper TypeScript types are included for each component. Review and understand the component APIs for future implementation.",
             "status": "done",
-            "testStrategy": "Create a temporary test file that imports all installed components to verify no import errors. Check that TypeScript compilation succeeds with all components. Verify component files exist in components/ui directory."
+            "testStrategy": "Create a temporary test file that imports all installed components to verify no import errors. Check that TypeScript compilation succeeds with all components. Verify component files exist in components/ui directory.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -40,12 +42,16 @@
             ],
             "details": "Create app/test-components/page.tsx with sections for each shadcn component. Implement examples of Button variants, Card layouts, form inputs, ScrollArea with content, Alert types, Toast notifications, Skeleton loading states, Badge variations, Sheet sliding panels, Tabs navigation, Popover menus, Tooltips, and Dialog modals. Add a dark mode toggle using next-themes or similar to test theme switching. Ensure all components respond correctly to theme changes. Add proper spacing and layout to showcase components clearly.",
             "status": "done",
-            "testStrategy": "Navigate to /test-components and verify all components render without errors. Test dark mode toggle changes all component appearances. Interact with each component to ensure functionality. Check browser console for any errors or warnings."
+            "testStrategy": "Navigate to /test-components and verify all components render without errors. Test dark mode toggle changes all component appearances. Interact with each component to ensure functionality. Check browser console for any errors or warnings.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down into: 1) Initialize shadcn/ui with Tailwind config and base styles, 2) Install and test core UI components (Button, Card, Input, etc.), 3) Create component showcase page and verify dark mode"
       },
       {
-        "id": 2,
+        "id": "2",
         "title": "Implement Firebase configuration and authentication setup",
         "description": "Set up Firebase SDK, configure Firestore database, Storage, and implement anonymous/authenticated user sessions",
         "details": "Install firebase and firebase-admin SDKs. Create lib/firebase.ts with initializeApp configuration. Set up Firestore with proper security rules for sessions collection. Implement Firebase Storage for image uploads with 5MB limit. Create auth context provider using Firebase Auth for anonymous and authenticated users. Configure environment variables for Firebase config. Set up proper error handling and connection status monitoring.",
@@ -61,7 +67,8 @@
             "dependencies": [],
             "details": "Run npm install firebase firebase-admin. Create lib/firebase.ts file with initializeApp configuration. Set up getAuth, getFirestore, and getStorage exports. Configure Firebase project settings using environment variables from .env.local file. Include proper TypeScript types for all Firebase services.",
             "status": "done",
-            "testStrategy": "Create a test file to verify Firebase app initialization. Test that all services (Auth, Firestore, Storage) are properly initialized. Verify environment variables are correctly loaded."
+            "testStrategy": "Create a test file to verify Firebase app initialization. Test that all services (Auth, Firestore, Storage) are properly initialized. Verify environment variables are correctly loaded.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -72,7 +79,8 @@
             ],
             "details": "Initialize Firestore in lib/firebase.ts. Create firestore.rules file with proper security rules for sessions collection allowing authenticated users to read/write their own data. Set up collection structure for users/{userId}/sessions/{sessionId}. Configure indexes if needed. Test database connectivity with sample write operation.",
             "status": "done",
-            "testStrategy": "Test security rules using Firebase emulator. Verify authenticated users can access their sessions. Test that users cannot access other users' data. Validate collection structure is created correctly."
+            "testStrategy": "Test security rules using Firebase emulator. Verify authenticated users can access their sessions. Test that users cannot access other users' data. Validate collection structure is created correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -83,7 +91,8 @@
             ],
             "details": "Initialize Firebase Storage in lib/firebase.ts with getStorage. Create storage.rules file with 5MB file size limit and authentication requirements. Set up storage bucket path structure for user uploads. Implement allowed file types validation (JPG, PNG, WEBP). Configure CORS settings if needed for browser uploads.",
             "status": "done",
-            "testStrategy": "Test file upload with various sizes to verify 5MB limit. Test rejection of invalid file types. Verify authenticated users can upload. Test storage path structure is correct."
+            "testStrategy": "Test file upload with various sizes to verify 5MB limit. Test rejection of invalid file types. Verify authenticated users can upload. Test storage path structure is correct.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -95,7 +104,8 @@
             ],
             "details": "Create contexts/AuthContext.tsx with useAuth hook. Implement signInAnonymously for initial users. Add Google OAuth sign-in option for persistent accounts. Handle auth state changes with onAuthStateChanged listener. Store user info in context state. Implement logout functionality. Handle auth persistence across page refreshes. Create proper TypeScript interfaces for auth state.",
             "status": "done",
-            "testStrategy": "Test anonymous sign-in creates temporary user. Verify Google OAuth flow works correctly. Test auth state persists on refresh. Ensure logout clears user state properly."
+            "testStrategy": "Test anonymous sign-in creates temporary user. Verify Google OAuth flow works correctly. Test auth state persists on refresh. Ensure logout clears user state properly.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -109,19 +119,23 @@
             ],
             "details": "Create lib/firebase-test.ts with test functions for each service. Implement connection status monitoring using Firebase's .info/connected reference. Add try-catch blocks with specific error messages for each Firebase operation. Create custom error classes for different failure types. Implement reconnection logic for network issues. Add console logging for debugging. Create status component showing Firebase connection state.",
             "status": "done",
-            "testStrategy": "Test each Firebase service endpoint individually. Simulate network disconnections to test error handling. Verify error messages are user-friendly. Test reconnection logic works properly. Ensure status monitoring accurately reflects connection state."
+            "testStrategy": "Test each Firebase service endpoint individually. Simulate network disconnections to test error handling. Verify error messages are user-friendly. Test reconnection logic works properly. Ensure status monitoring accurately reflects connection state.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Break down into: 1) Install Firebase SDK and create configuration module, 2) Set up Firestore database with security rules, 3) Configure Firebase Storage for image uploads, 4) Implement auth context provider for anonymous/authenticated users, 5) Create test endpoints and error handling"
       },
       {
-        "id": 3,
+        "id": "3",
         "title": "Create chat UI with Socratic dialogue components",
         "description": "Build the main chat interface using shadcn components with message bubbles, input area, and proper scrolling behavior",
         "details": "Create components/chat/ChatInterface.tsx using shadcn ScrollArea for message container. Implement MessageBubble component extending Card with student/tutor styling. Add ChatInput component with Textarea and send button. Implement auto-scroll to latest message using useEffect and refs. Add loading states with Skeleton components. Create proper TypeScript interfaces for Message type. Style with Tailwind for responsive design.",
         "testStrategy": "Test message rendering with mock data showing both student and tutor messages. Verify auto-scroll behavior. Test input validation and character limit. Ensure responsive layout on mobile/tablet/desktop.",
         "priority": "high",
         "dependencies": [
-          1
+          "1"
         ],
         "status": "done",
         "subtasks": [
@@ -132,7 +146,8 @@
             "dependencies": [],
             "details": "Create components/chat/ChatInterface.tsx file. Import and configure shadcn ScrollArea component for message container. Set up main layout structure with header, message area, and input area. Configure proper height calculations using flex layout. Add responsive padding and margins using Tailwind classes. Create TypeScript interface for ChatInterface props including optional initial messages array.",
             "status": "done",
-            "testStrategy": "Test component renders with empty state. Verify ScrollArea properly contains messages. Test responsive layout on different screen sizes. Ensure proper flex layout with full height utilization."
+            "testStrategy": "Test component renders with empty state. Verify ScrollArea properly contains messages. Test responsive layout on different screen sizes. Ensure proper flex layout with full height utilization.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -143,7 +158,8 @@
             ],
             "details": "Create components/chat/MessageBubble.tsx extending shadcn Card component. Define Message TypeScript interface with role (student/tutor), content, timestamp, and optional id fields. Implement conditional styling using cn() helper for student messages (right-aligned, blue background) and tutor messages (left-aligned, gray background). Add timestamp display with relative time formatting. Include avatar or role indicator. Apply proper text wrapping and max-width constraints for readability.",
             "status": "done",
-            "testStrategy": "Test rendering with both student and tutor message types. Verify correct alignment and color schemes. Test long message text wrapping. Ensure timestamps display correctly."
+            "testStrategy": "Test rendering with both student and tutor message types. Verify correct alignment and color schemes. Test long message text wrapping. Ensure timestamps display correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -154,7 +170,8 @@
             ],
             "details": "Create components/chat/ChatInput.tsx using shadcn Textarea component. Implement 500 character limit with visual counter display. Add Send button using shadcn Button component with loading state. Implement onSubmit handler with validation for empty messages. Add keyboard shortcut support (Ctrl/Cmd+Enter to send). Include disabled state when message is being processed. Add proper focus management after sending. Implement auto-resize for textarea up to 4 rows maximum.",
             "status": "done",
-            "testStrategy": "Test character limit enforcement and counter display. Verify send button enables/disables correctly. Test keyboard shortcuts work. Ensure textarea auto-resizes properly. Test validation prevents empty messages."
+            "testStrategy": "Test character limit enforcement and counter display. Verify send button enables/disables correctly. Test keyboard shortcuts work. Ensure textarea auto-resizes properly. Test validation prevents empty messages.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -167,19 +184,23 @@
             ],
             "details": "Implement auto-scroll using useRef to track ScrollArea viewport and useEffect to scroll on new messages. Add messagesEndRef element at bottom of message list. Create smooth scroll behavior with requestAnimationFrame. Implement smart scroll that only triggers when user is near bottom. Add loading state using shadcn Skeleton component for incoming AI responses. Create typing indicator animation for tutor responses. Implement scroll-to-bottom button that appears when scrolled up. Add proper cleanup in useEffect to prevent memory leaks.",
             "status": "done",
-            "testStrategy": "Test auto-scroll triggers on new messages. Verify scroll only happens when near bottom. Test loading skeleton appears during AI response. Ensure scroll-to-bottom button shows/hides correctly. Test performance with many messages."
+            "testStrategy": "Test auto-scroll triggers on new messages. Verify scroll only happens when near bottom. Test loading skeleton appears during AI response. Ensure scroll-to-bottom button shows/hides correctly. Test performance with many messages.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break down into: 1) Create ChatInterface layout with ScrollArea, 2) Implement MessageBubble component with student/tutor styling, 3) Build ChatInput with validation and send functionality, 4) Add auto-scroll behavior and loading states"
       },
       {
-        "id": 4,
+        "id": "4",
         "title": "Integrate Vercel AI SDK with OpenAI GPT-4",
         "description": "Set up Vercel AI SDK for streaming chat responses and implement the Socratic system prompt",
         "details": "Install @ai-sdk/openai and ai packages. Create app/api/chat/route.ts implementing POST endpoint using Vercel AI SDK's streamText function. Implement the complete Socratic system prompt with strict rules about not providing direct answers. Add conversation context management keeping last 10 turns. Configure proper error handling and retry logic. Implement token counting to stay under 4000 token limit. Add proper TypeScript types for API requests/responses.",
         "testStrategy": "Test with simple algebra problems to verify Socratic responses. Ensure streaming works properly. Test that direct answers are never given. Verify error handling for API failures. Test token limit enforcement.",
         "priority": "high",
         "dependencies": [
-          2
+          "2"
         ],
         "status": "done",
         "subtasks": [
@@ -190,7 +211,8 @@
             "dependencies": [],
             "details": "Run npm install @ai-sdk/openai ai to add the required packages. Create the app/api/chat/route.ts file with the basic POST endpoint structure. Set up the necessary imports from Vercel AI SDK including streamText, OpenAIProvider, and related utilities. Configure environment variables for OPENAI_API_KEY in .env.local file. Create the basic route handler with proper Next.js 13+ App Router conventions.",
             "status": "done",
-            "testStrategy": "Verify packages are installed correctly by checking package.json. Test that the API route is accessible at /api/chat endpoint. Ensure environment variables are properly loaded."
+            "testStrategy": "Verify packages are installed correctly by checking package.json. Test that the API route is accessible at /api/chat endpoint. Ensure environment variables are properly loaded.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -201,7 +223,8 @@
             ],
             "details": "Write the complete system prompt that defines the Socratic teaching method with explicit rules: never provide direct answers, always respond with guiding questions, break down problems into smaller conceptual steps, encourage critical thinking, validate understanding through follow-up questions. Include specific examples of proper Socratic responses for different math problem types. Configure the prompt to maintain consistent teaching behavior throughout conversations. Add personality traits for an encouraging and patient tutor persona.",
             "status": "done",
-            "testStrategy": "Test the prompt with various math problems to ensure it never gives direct answers. Verify it asks appropriate guiding questions. Test edge cases where students explicitly ask for answers."
+            "testStrategy": "Test the prompt with various math problems to ensure it never gives direct answers. Verify it asks appropriate guiding questions. Test edge cases where students explicitly ask for answers.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -213,7 +236,8 @@
             ],
             "details": "Implement the streamText function from Vercel AI SDK to handle streaming responses from GPT-4. Create TypeScript interfaces for ChatRequest and ChatResponse types including message structure, role types, and metadata. Configure the OpenAI model parameters including temperature, max_tokens, and stream settings. Set up proper response headers for Server-Sent Events (SSE). Implement the streaming pipeline to handle chunks of data as they arrive from the API. Add proper type safety for all API interactions.",
             "status": "done",
-            "testStrategy": "Test streaming works by verifying chunks arrive progressively. Ensure TypeScript types are correctly enforced. Test with long responses to verify streaming behavior."
+            "testStrategy": "Test streaming works by verifying chunks arrive progressively. Ensure TypeScript types are correctly enforced. Test with long responses to verify streaming behavior.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -224,7 +248,8 @@
             ],
             "details": "Integrate a token counting library (tiktoken or similar) to accurately count tokens for GPT-4. Implement sliding window context management that keeps the last 10 conversation turns. Create a function to trim older messages when approaching token limits while preserving system prompt. Add logic to calculate tokens for each message including system prompt, user messages, and assistant responses. Implement context compression if needed when approaching limits. Store conversation history in memory with proper cleanup.",
             "status": "done",
-            "testStrategy": "Test token counting accuracy against known message lengths. Verify context window properly maintains last 10 turns. Test behavior when approaching 4000 token limit."
+            "testStrategy": "Test token counting accuracy against known message lengths. Verify context window properly maintains last 10 turns. Test behavior when approaching 4000 token limit.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -236,20 +261,24 @@
             ],
             "details": "Implement try-catch blocks around all API calls with specific error type handling. Add exponential backoff retry logic for transient failures (start at 1 second, double up to 32 seconds, max 3 retries). Handle specific OpenAI API errors including rate limits, token limits, and invalid requests. Implement graceful degradation for streaming failures with fallback to non-streaming responses. Add proper error logging with error codes and messages. Return user-friendly error messages in the response stream. Handle timeout scenarios for long-running requests.",
             "status": "done",
-            "testStrategy": "Test retry logic by simulating API failures. Verify exponential backoff timing. Test rate limit handling. Ensure error messages are helpful to users. Test timeout scenarios."
+            "testStrategy": "Test retry logic by simulating API failures. Verify exponential backoff timing. Test rate limit handling. Ensure error messages are helpful to users. Test timeout scenarios.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Break down into: 1) Install Vercel AI SDK and create API route structure, 2) Implement Socratic system prompt with strict guidelines, 3) Add streaming response handling with proper types, 4) Implement token counting and context management, 5) Add error handling and retry logic"
       },
       {
-        "id": 5,
+        "id": "5",
         "title": "Implement problem input system with text and image upload",
         "description": "Create tabbed interface for problem input supporting both text entry and image upload with OCR",
         "details": "Create ProblemInput component using shadcn Tabs with 'Type Problem' and 'Upload Image' tabs. Implement text input with Textarea component, 500 character limit, and validation. Add drag-and-drop image upload using Input type='file' accepting JPG/PNG/WEBP up to 5MB. Create preview area for uploaded images. Implement image upload to Firebase Storage. Add 'Start Problem' button with proper disabled states. Include mathematical symbol picker using Popover with grid of symbol buttons.",
         "testStrategy": "Test text input validation and character counting. Verify image upload with different formats and sizes. Test drag-and-drop functionality. Ensure file size/type validation works. Test symbol picker inserts correctly.",
         "priority": "high",
         "dependencies": [
-          1,
-          2
+          "1",
+          "2"
         ],
         "status": "done",
         "subtasks": [
@@ -260,7 +289,8 @@
             "dependencies": [],
             "details": "Create components/ProblemInput.tsx using shadcn/ui Tabs, TabsList, TabsTrigger, and TabsContent. Structure with two tabs: 'Type Problem' and 'Upload Image'. Implement proper tab switching logic and visual states. Add container styling with proper padding and responsive layout. Include disabled states for tabs when processing.",
             "status": "done",
-            "testStrategy": "Test tab switching functionality works correctly. Verify both tabs render proper content. Ensure keyboard navigation works. Test responsive behavior on mobile devices."
+            "testStrategy": "Test tab switching functionality works correctly. Verify both tabs render proper content. Ensure keyboard navigation works. Test responsive behavior on mobile devices.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -271,7 +301,8 @@
             ],
             "details": "Add shadcn Textarea component in 'Type Problem' tab with placeholder text. Implement character counting logic showing remaining characters (e.g., '245/500'). Add real-time validation to check for minimum content length. Create error state display using shadcn Alert for validation messages. Include auto-resize functionality for better UX. Store input value in component state.",
             "status": "done",
-            "testStrategy": "Test character limit enforcement at exactly 500 characters. Verify character counter updates in real-time. Test validation messages appear correctly. Ensure paste operations respect character limit."
+            "testStrategy": "Test character limit enforcement at exactly 500 characters. Verify character counter updates in real-time. Test validation messages appear correctly. Ensure paste operations respect character limit.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -282,7 +313,8 @@
             ],
             "details": "Create drag-and-drop zone in 'Upload Image' tab using react-dropzone or native HTML5. Accept JPG, PNG, WEBP formats only. Implement 5MB file size validation with error messages. Add visual feedback for drag hover states. Create image preview component showing uploaded image with remove button. Include file input as fallback for mobile/accessibility. Display file name and size information.",
             "status": "done",
-            "testStrategy": "Test drag-and-drop with valid image formats. Verify rejection of non-image files and oversized files. Test preview displays correctly for different image sizes. Ensure remove functionality works properly."
+            "testStrategy": "Test drag-and-drop with valid image formats. Verify rejection of non-image files and oversized files. Test preview displays correctly for different image sizes. Ensure remove functionality works properly.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -293,7 +325,8 @@
             ],
             "details": "Import Firebase Storage functions from lib/firebase.ts. Create uploadImage function with unique file naming using timestamps/UUIDs. Implement upload progress tracking with percentage display. Add error handling for network failures and storage quota issues. Generate and store download URL after successful upload. Create cleanup function to delete unused images. Add upload cancellation capability.",
             "status": "done",
-            "testStrategy": "Test successful upload to Firebase Storage. Verify progress tracking updates correctly. Test error handling for network disconnection. Ensure generated URLs are accessible. Test upload cancellation functionality."
+            "testStrategy": "Test successful upload to Firebase Storage. Verify progress tracking updates correctly. Test error handling for network disconnection. Ensure generated URLs are accessible. Test upload cancellation functionality.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -304,20 +337,24 @@
             ],
             "details": "Create MathSymbolPicker component using shadcn Popover and PopoverTrigger. Design grid layout with common symbols: ±, ×, ÷, √, π, ∞, ∑, ∫, θ, α, β, γ, ≤, ≥, ≠, ≈. Implement symbol insertion at cursor position in textarea. Add keyboard navigation support for accessibility. Include hover tooltips showing symbol names. Create categorized sections for different symbol types (operators, Greek letters, etc.).",
             "status": "done",
-            "testStrategy": "Test symbol insertion at different cursor positions. Verify symbols display correctly in textarea. Test keyboard navigation through symbol grid. Ensure popover positioning works on different screen sizes."
+            "testStrategy": "Test symbol insertion at different cursor positions. Verify symbols display correctly in textarea. Test keyboard navigation through symbol grid. Ensure popover positioning works on different screen sizes.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Break down into: 1) Create tabbed interface structure with shadcn Tabs, 2) Implement text input with validation and character limit, 3) Build image upload with drag-and-drop and preview, 4) Add Firebase Storage integration for uploads, 5) Create mathematical symbol picker component"
       },
       {
-        "id": 6,
+        "id": "6",
         "title": "Integrate OpenAI Vision API for image parsing using Server Actions",
         "description": "Implement OCR functionality to extract mathematical problems from uploaded images using GPT-4 Vision with Next.js Server Actions",
         "details": "Create app/actions/parse-image.ts Server Action using 'use server' directive. Handle FormData directly (no multipart parsing needed). Implement OpenAI Vision API integration using gpt-4-vision-preview model. Process uploaded images with medium detail mode for cost optimization. Extract problem text with confidence scoring. Return structured error objects (not throw) for proper client-side handling. Handle various textbook formatting styles. Implement proper error handling for failed parsing. Cache parsed results in Firestore to prevent reprocessing. Use useActionState and useFormStatus hooks on client for state management and loading indicators.",
         "testStrategy": "Test with sample math problem images from textbooks. Verify accuracy of text extraction. Test with poor quality images. Ensure proper error messages for unparseable content. Verify caching prevents duplicate API calls. Test useActionState integration shows proper loading and error states.",
         "priority": "medium",
         "dependencies": [
-          4,
-          5
+          "4",
+          "5"
         ],
         "status": "done",
         "subtasks": [
@@ -328,7 +365,8 @@
             "dependencies": [],
             "details": "Create app/actions/parse-image.ts file with 'use server' directive at the top. Export async function parseImageAction(formData: FormData) that extracts uploaded image files from FormData using formData.get('image'). Add file validation for image types (jpg, png, webp) and size limits (max 5MB). Convert uploaded file to base64 format for Vision API compatibility. Return structured response objects with success/error states instead of throwing errors. Include proper TypeScript types for return values matching useActionState pattern: { success: boolean; data?: ParsedImage; error?: string }.",
             "status": "done",
-            "testStrategy": "Test Server Action with various image formats and sizes. Verify rejection of non-image files returns error object. Test size limit enforcement. Ensure proper error response structure for invalid requests."
+            "testStrategy": "Test Server Action with various image formats and sizes. Verify rejection of non-image files returns error object. Test size limit enforcement. Ensure proper error response structure for invalid requests.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -339,7 +377,8 @@
             ],
             "details": "Within the Server Action, set up OpenAI client with API key from process.env.OPENAI_API_KEY. Configure Vision API call with gpt-4-vision-preview model using medium detail mode for cost optimization. Structure prompt to specifically extract mathematical problems and equations from images. Implement proper request formatting with base64 image data. Add timeout handling for long-running requests using AbortController. Configure temperature and max_tokens parameters for consistent results. Return error objects for API failures instead of throwing.",
             "status": "done",
-            "testStrategy": "Test with sample math textbook images. Verify API authentication works. Test timeout handling with slow responses. Ensure consistent extraction quality. Verify error objects are returned properly."
+            "testStrategy": "Test with sample math textbook images. Verify API authentication works. Test timeout handling with slow responses. Ensure consistent extraction quality. Verify error objects are returned properly.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -350,7 +389,8 @@
             ],
             "details": "Within the Server Action, parse Vision API response to extract mathematical problem text. Implement confidence scoring algorithm based on response clarity and completeness. Handle various mathematical notation formats (fractions, exponents, special symbols). Create text normalization for consistent output format. Add detection for multiple problems in single image. Return structured response with extracted text, confidence score, and detected problem boundaries in the Server Action response object. Handle edge cases like handwritten text or poor image quality with appropriate error messages in response.",
             "status": "done",
-            "testStrategy": "Test with diverse textbook styles and formats. Verify confidence scoring accuracy. Test with handwritten problems. Ensure special mathematical symbols are preserved. Verify response structure matches useActionState expectations."
+            "testStrategy": "Test with diverse textbook styles and formats. Verify confidence scoring accuracy. Test with handwritten problems. Ensure special mathematical symbols are preserved. Verify response structure matches useActionState expectations.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -361,21 +401,25 @@
             ],
             "details": "Within the Server Action, generate unique hash for each uploaded image using crypto library. Create Firestore collection 'parsed_images' with document structure containing image hash, extracted text, confidence score, and timestamp. Implement cache lookup before Vision API call using image hash. Store successful parsing results with 30-day TTL. Add cache hit/miss in response metadata. Handle Firestore connection errors gracefully with fallback to direct API call. On the client side, create component using useActionState to manage Server Action state and useFormStatus for loading indicators. Implement form submission that calls the Server Action. Display loading states, error messages, and success results based on the action state.",
             "status": "done",
-            "testStrategy": "Test cache hits with duplicate image uploads. Verify TTL expiration works correctly. Test cache miss scenarios. Ensure Firestore errors don't break functionality. Test client-side integration with useActionState shows proper loading/error/success states. Verify useFormStatus displays loading indicator during submission."
+            "testStrategy": "Test cache hits with duplicate image uploads. Verify TTL expiration works correctly. Test cache miss scenarios. Ensure Firestore errors don't break functionality. Test client-side integration with useActionState shows proper loading/error/success states. Verify useFormStatus displays loading indicator during submission.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break down into: 1) Create API route for image processing with multipart form handling, 2) Implement Vision API integration with proper parameters, 3) Add text extraction and confidence scoring logic, 4) Implement caching in Firestore to prevent reprocessing"
       },
       {
-        "id": 7,
+        "id": "7",
         "title": "Add KaTeX for mathematical notation rendering",
         "description": "Integrate KaTeX library to properly render LaTeX mathematical expressions in chat messages",
         "details": "Install katex and @types/katex packages. Create MathDisplay component wrapping KaTeX renderer. Implement inline and display mode rendering detection. Convert plain text math notation (x^2, sqrt(x)) to LaTeX format. Handle special symbols and complex equations. Ensure proper CSS is loaded for KaTeX styling. Create utility function for LaTeX conversion. Integrate with MessageBubble component.",
         "testStrategy": "Test rendering of fractions, exponents, radicals, Greek letters, and complex equations. Verify both inline and display modes work. Test on different screen sizes. Ensure fallback for invalid LaTeX.",
         "priority": "medium",
         "dependencies": [
-          3
+          "3"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -383,8 +427,10 @@
             "description": "Install katex and @types/katex npm packages, then configure proper CSS imports for KaTeX styling in the Next.js application",
             "dependencies": [],
             "details": "Run npm install katex @types/katex to add KaTeX library and TypeScript definitions. Import 'katex/dist/katex.min.css' in the root layout or globals.css file to ensure KaTeX mathematical notation renders with proper styling. Verify that the CSS is properly loaded by checking browser dev tools and ensure no CSS conflicts with existing Tailwind styles.",
-            "status": "pending",
-            "testStrategy": "Create a test page that renders a simple math expression using KaTeX.render() directly to verify library installation and CSS loading"
+            "status": "done",
+            "testStrategy": "Create a test page that renders a simple math expression using KaTeX.render() directly to verify library installation and CSS loading",
+            "updatedAt": "2025-11-03T22:05:36.764Z",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -394,8 +440,10 @@
               1
             ],
             "details": "Create components/MathDisplay.tsx that accepts latex string and mode props. Use katex.renderToString() with throwOnError: false for safe rendering. Implement mode detection logic: inline math for expressions wrapped in $ (e.g., $x^2$) and display mode for $$ (e.g., $$\\int_0^1 x dx$$). Add error boundary to handle invalid LaTeX gracefully. Include proper TypeScript types for component props.",
-            "status": "pending",
-            "testStrategy": "Test component with various LaTeX expressions including fractions, integrals, matrices, and Greek letters in both inline and display modes"
+            "status": "done",
+            "testStrategy": "Test component with various LaTeX expressions including fractions, integrals, matrices, and Greek letters in both inline and display modes",
+            "parentId": "undefined",
+            "updatedAt": "2025-11-03T22:06:01.792Z"
           },
           {
             "id": 3,
@@ -405,21 +453,27 @@
               2
             ],
             "details": "Create lib/math-converter.ts with function to convert common plain text patterns (x^2 → x^{2}, sqrt(x) → \\sqrt{x}, 1/2 → \\frac{1}{2}). Use regex patterns to detect math expressions in message text. Modify MessageBubble component to parse message content, identify math expressions, and render them using MathDisplay while preserving regular text. Handle edge cases like nested parentheses and mixed text/math content.",
-            "status": "pending",
-            "testStrategy": "Test conversion of various plain text math notations, verify correct rendering in chat messages, ensure non-math text is unaffected"
+            "status": "done",
+            "testStrategy": "Test conversion of various plain text math notations, verify correct rendering in chat messages, ensure non-math text is unaffected",
+            "parentId": "undefined",
+            "updatedAt": "2025-11-03T22:07:06.467Z"
           }
-        ]
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down into: 1) Install KaTeX and configure CSS imports, 2) Create MathDisplay wrapper component with inline/display modes, 3) Add conversion utility and integrate with MessageBubble",
+        "updatedAt": "2025-11-03T22:07:06.467Z"
       },
       {
-        "id": 8,
+        "id": "8",
         "title": "Implement conversation persistence and session management",
         "description": "Store chat sessions in Firestore with proper schema and implement session creation/retrieval logic",
         "details": "Create Firestore schema: users/{userId}/sessions/{sessionId} with problemText, problemType, status, timestamps, and turnCount. Implement turns subcollection for conversation history. Create hooks/useSession.ts for session management. Add session creation on problem start. Store each conversation turn with speaker, message, timestamp. Implement session status updates (in-progress/completed/abandoned). Add automatic session completion after 50 turns. Create session metadata tracking.",
         "testStrategy": "Test session creation and ID generation. Verify turns are stored correctly. Test session status transitions. Ensure data persists across page refreshes. Test concurrent session handling.",
         "priority": "high",
         "dependencies": [
-          2,
-          4
+          "2",
+          "4"
         ],
         "status": "done",
         "subtasks": [
@@ -430,7 +484,8 @@
             "dependencies": [],
             "details": "Design users/{userId}/sessions/{sessionId} collection with fields: problemText (string), problemType (enum: algebra/geometry/word-problem), status (enum: in-progress/completed/abandoned), createdAt/updatedAt (timestamps), turnCount (number), hints (array). Create turns subcollection with fields: speaker (user/assistant), message (string), timestamp, hintLevel (number). Define TypeScript interfaces for Session and Turn types. Set up Firestore security rules for authenticated user access only.",
             "status": "done",
-            "testStrategy": "Test schema creation with sample data, verify field types and constraints, test security rules with different auth states"
+            "testStrategy": "Test schema creation with sample data, verify field types and constraints, test security rules with different auth states",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -441,7 +496,8 @@
             ],
             "details": "Create hooks/useSession.ts with useCreateSession hook that generates unique session IDs and initializes session documents. Implement useCurrentSession for retrieving active session data with real-time updates. Add useSessionList for fetching user's session history. Create utility functions for session ID generation using Firebase's auto-generated IDs. Include proper TypeScript types and error handling for all Firebase operations. Add session caching to minimize Firestore reads.",
             "status": "done",
-            "testStrategy": "Test hook behavior with React Testing Library, mock Firestore operations, verify real-time updates work correctly"
+            "testStrategy": "Test hook behavior with React Testing Library, mock Firestore operations, verify real-time updates work correctly",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -453,7 +509,8 @@
             ],
             "details": "Create addTurn function to append messages to turns subcollection with automatic timestamp generation. Implement getTurns query with pagination support (20 turns per page). Add real-time listener for new turns using onSnapshot. Create turn validation to ensure proper speaker alternation (user/assistant). Implement turn counter increment on each addition. Add batch write support for multiple turns. Include optimistic updates for better UX during turn submission.",
             "status": "done",
-            "testStrategy": "Test turn addition with concurrent writes, verify pagination works correctly, test real-time updates across multiple clients"
+            "testStrategy": "Test turn addition with concurrent writes, verify pagination works correctly, test real-time updates across multiple clients",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -465,7 +522,8 @@
             ],
             "details": "Create updateSessionStatus function with validation for allowed transitions (in-progress -> completed/abandoned only). Implement automatic status change to 'in-progress' on first turn. Add session completion triggers: manual completion button, 50-turn limit reached, or 30-minute inactivity. Track session metadata: last activity timestamp, total duration, hint count, completion rate. Create abandoned session detection for sessions inactive over 24 hours. Add session resumption capability for in-progress sessions.",
             "status": "done",
-            "testStrategy": "Test all status transition paths, verify automatic triggers work, test session resumption after page refresh"
+            "testStrategy": "Test all status transition paths, verify automatic triggers work, test session resumption after page refresh",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -477,20 +535,24 @@
             ],
             "details": "Implement turn counter that triggers completion at 50 turns with warning at 45 turns. Create session finalization function that calculates final statistics: total duration, turns used, hints provided, completion status. Add graceful session closure with final summary message to user. Implement cleanup for abandoned sessions older than 7 days. Create session export functionality for completed sessions (JSON format). Add session analytics tracking for completion rates and average turn counts.",
             "status": "done",
-            "testStrategy": "Test automatic completion at 50 turns, verify warning appears at 45 turns, test session statistics calculation accuracy"
+            "testStrategy": "Test automatic completion at 50 turns, verify warning appears at 45 turns, test session statistics calculation accuracy",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Break down into: 1) Design and implement Firestore schema for sessions, 2) Create session management hooks, 3) Implement turn storage and retrieval logic, 4) Add session status tracking and transitions, 5) Implement automatic session completion logic"
       },
       {
-        "id": 9,
+        "id": "9",
         "title": "Build conversation history sidebar with session management",
         "description": "Create collapsible sidebar showing past problem sessions with search, filter, and resume capabilities",
         "details": "Create HistorySidebar component using shadcn Sheet for mobile-responsive drawer. Display session list with Card components showing problem preview, status badges, timestamps. Implement pagination loading 20 sessions at a time. Add search functionality with shadcn Input component. Create filters for in-progress/completed status. Enable click-to-view full conversation history. Implement resume functionality for incomplete sessions. Add 'New Problem' button to start fresh session.",
         "testStrategy": "Test sidebar open/close animations. Verify session list displays correctly. Test search and filter functionality. Ensure pagination works properly. Test resume session maintains context. Verify mobile drawer behavior.",
         "priority": "medium",
         "dependencies": [
-          1,
-          8
+          "1",
+          "8"
         ],
         "status": "pending",
         "subtasks": [
@@ -501,7 +563,8 @@
             "dependencies": [],
             "details": "Create components/HistorySidebar.tsx using shadcn Sheet component. Implement toggle button with menu icon that opens/closes sidebar. Set up responsive breakpoints - permanent sidebar on desktop (lg+), drawer on mobile. Create header section with 'Session History' title and 'New Problem' button. Set up main content area with ScrollArea for session list. Configure Sheet props for slide animation from left on mobile. Add proper z-index layering and backdrop for mobile drawer mode.",
             "status": "pending",
-            "testStrategy": "Test sidebar toggle functionality on different screen sizes. Verify Sheet animation on mobile devices. Test backdrop click to close on mobile. Ensure proper responsive behavior at breakpoints."
+            "testStrategy": "Test sidebar toggle functionality on different screen sizes. Verify Sheet animation on mobile devices. Test backdrop click to close on mobile. Ensure proper responsive behavior at breakpoints.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -512,7 +575,8 @@
             ],
             "details": "Create SessionList component rendering Card components for each session. Display problem text preview (first 100 chars), status badge (in-progress/completed/abandoned), timestamp with relative time format, and turn count. Implement useSessions hook to fetch sessions from Firestore with pagination using limit(20) and startAfter cursor. Add 'Load More' button at bottom when more sessions available. Include loading skeleton states during fetch. Format timestamps using date-fns library for 'X minutes ago' style display.",
             "status": "pending",
-            "testStrategy": "Test session cards display all required information correctly. Verify pagination loads exactly 20 items per page. Test 'Load More' functionality with various session counts. Ensure loading states appear during data fetching."
+            "testStrategy": "Test session cards display all required information correctly. Verify pagination loads exactly 20 items per page. Test 'Load More' functionality with various session counts. Ensure loading states appear during data fetching.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -523,7 +587,8 @@
             ],
             "details": "Add shadcn Input component at top of sidebar for search functionality. Implement local filtering of loaded sessions based on search query matching problem text. Create filter toggle buttons using shadcn Toggle or Badge components for status filtering. Implement combined search and filter logic in useFilteredSessions hook. Add clear filters button when filters are active. Display 'No sessions found' message when filters return empty results. Debounce search input with 300ms delay to optimize performance.",
             "status": "pending",
-            "testStrategy": "Test search functionality with various query strings. Verify filter toggles work independently and combined. Test clear filters resets all filters. Ensure search debouncing prevents excessive filtering."
+            "testStrategy": "Test search functionality with various query strings. Verify filter toggles work independently and combined. Test clear filters resets all filters. Ensure search debouncing prevents excessive filtering.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -534,20 +599,24 @@
             ],
             "details": "Add onClick handler to session cards to expand and show full conversation history in modal or expanded view. Create SessionView component displaying all conversation turns with proper formatting. Implement 'Resume Session' button for in-progress sessions that loads session context into main chat interface. Add 'View Only' mode for completed sessions showing read-only conversation history. Handle session state restoration including problem text, conversation turns, and current step. Create smooth transition when resuming session to main chat area.",
             "status": "pending",
-            "testStrategy": "Test session card click opens full conversation view. Verify resume button only appears for in-progress sessions. Test session context properly loads when resumed. Ensure completed sessions are read-only."
+            "testStrategy": "Test session card click opens full conversation view. Verify resume button only appears for in-progress sessions. Test session context properly loads when resumed. Ensure completed sessions are read-only.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break down into: 1) Create HistorySidebar with Sheet component for mobile responsiveness, 2) Implement session list with pagination and status badges, 3) Add search and filter functionality, 4) Implement resume session feature"
       },
       {
-        "id": 10,
+        "id": "10",
         "title": "Implement advanced Socratic logic with hints and examples",
         "description": "Add intelligent hint system, stuck detection, and similar example problem generation for blocked students",
         "details": "Implement stuck detection algorithm tracking incorrect responses. Create graduated hint system: conceptual hint after 2 stuck turns, specific approach after 3, concrete direction after 4. Build example solution generator after 5+ stuck turns using GPT-4 to create similar problems with different numbers. Track hint usage in session metadata. Implement problem type detection for tailored questioning (algebra, geometry, word problems). Add response validation to identify misconceptions. Create encouraging feedback messages.",
         "testStrategy": "Test hint escalation with deliberately incorrect responses. Verify example problems are structurally similar but numerically different. Test that original problem is never solved directly. Verify problem type detection accuracy. Test encouraging tone in responses.",
         "priority": "medium",
         "dependencies": [
-          4,
-          8
+          "4",
+          "8"
         ],
         "status": "pending",
         "subtasks": [
@@ -558,7 +627,8 @@
             "dependencies": [],
             "details": "Build a response tracker that monitors consecutive incorrect attempts, stores attempt history in session state, implements threshold detection (2+ incorrect = stuck), tracks time between responses to detect frustration patterns, and creates a stuck status enum (not_stuck, potentially_stuck, definitely_stuck). Include pattern analysis for repeated similar errors.",
             "status": "pending",
-            "testStrategy": "Test with sequences of correct and incorrect responses, verify stuck detection triggers at correct thresholds, test edge cases with mixed response patterns"
+            "testStrategy": "Test with sequences of correct and incorrect responses, verify stuck detection triggers at correct thresholds, test edge cases with mixed response patterns",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -569,7 +639,8 @@
             ],
             "details": "Implement four hint levels: Level 1 (conceptual hint after 2 stuck turns), Level 2 (specific approach after 3 turns), Level 3 (concrete direction after 4 turns), Level 4 (example problem trigger after 5+ turns). Create hint generation logic using GPT-4 with specific prompts for each level. Store hint history and ensure no duplicate hints are given.",
             "status": "pending",
-            "testStrategy": "Verify each hint level triggers at correct stuck count, test hint quality and relevance, ensure hints progress logically from abstract to concrete"
+            "testStrategy": "Verify each hint level triggers at correct stuck count, test hint quality and relevance, ensure hints progress logically from abstract to concrete",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -581,7 +652,8 @@
             ],
             "details": "Implement GPT-4 integration for dynamic problem generation that creates structurally identical problems with different numerical values. Parse original problem to extract structure and problem type. Generate 2-3 similar examples with step-by-step solutions. Ensure generated problems maintain same difficulty level and mathematical concepts. Include solution walkthrough display.",
             "status": "pending",
-            "testStrategy": "Test problem similarity validation, verify numerical differences while maintaining structure, ensure solutions are correct and well-formatted"
+            "testStrategy": "Test problem similarity validation, verify numerical differences while maintaining structure, ensure solutions are correct and well-formatted",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -590,7 +662,8 @@
             "dependencies": [],
             "details": "Create problem classifier to detect: algebra (equations, expressions), geometry (shapes, measurements), word problems (real-world scenarios), calculus (derivatives, integrals), statistics (probability, data analysis). Use GPT-4 for initial classification with confidence scoring. Store problem type in session metadata. Create type-specific questioning strategies.",
             "status": "pending",
-            "testStrategy": "Test classification accuracy across diverse problem sets, verify edge cases with mixed problem types, validate type-specific questioning appropriateness"
+            "testStrategy": "Test classification accuracy across diverse problem sets, verify edge cases with mixed problem types, validate type-specific questioning appropriateness",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -601,7 +674,8 @@
             ],
             "details": "Build response analyzer using GPT-4 to identify common misconceptions like order of operations errors, sign errors, conceptual misunderstandings, calculation mistakes, and unit conversion errors. Create misconception database with targeted feedback for each type. Implement pattern matching for frequent error types. Generate specific corrective guidance based on identified misconceptions.",
             "status": "pending",
-            "testStrategy": "Test misconception detection accuracy with known error patterns, verify appropriate feedback generation, test edge cases with multiple simultaneous errors"
+            "testStrategy": "Test misconception detection accuracy with known error patterns, verify appropriate feedback generation, test edge cases with multiple simultaneous errors",
+            "parentId": "undefined"
           },
           {
             "id": 6,
@@ -613,20 +687,24 @@
             ],
             "details": "Design feedback templates for different scenarios: partial success, complete failure, showing improvement, persistent struggle. Implement tone variation based on stuck level and attempt count. Create praise system for correct steps even in wrong answers. Add motivational messages during extended struggle periods. Include progress acknowledgment phrases and growth mindset reinforcement. Ensure age-appropriate language.",
             "status": "pending",
-            "testStrategy": "Test tone appropriateness across different failure scenarios, verify encouragement increases with struggle level, validate message variety to avoid repetition"
+            "testStrategy": "Test tone appropriateness across different failure scenarios, verify encouragement increases with struggle level, validate message variety to avoid repetition",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 6,
+        "expansionPrompt": "Break down into: 1) Implement stuck detection algorithm, 2) Create graduated hint system with escalation levels, 3) Build example problem generator with GPT-4, 4) Add problem type detection logic, 5) Implement response validation for misconceptions, 6) Create encouraging feedback system"
       },
       {
-        "id": 11,
+        "id": "11",
         "title": "Add rate limiting and cost optimization features",
         "description": "Implement API rate limiting, token management, and budget constraints to control costs",
         "details": "Implement rate limiting: 30 requests/minute per user using middleware. Add session turn limit of 50 turns with graceful completion. Compress conversation context keeping only last 10 full turns, summarize older. Implement token counting before API calls with 4000 token maximum. Add daily limit of 20 new problems per user. Cache frequently used responses. Implement image resizing before Vision API calls (max 2048x2048). Add cost tracking per session in Firestore.",
         "testStrategy": "Test rate limiting triggers appropriate error messages. Verify turn limits are enforced. Test context compression maintains conversation coherence. Ensure token limits prevent API errors. Verify daily limits reset properly.",
         "priority": "medium",
         "dependencies": [
-          4,
-          8
+          "4",
+          "8"
         ],
         "status": "pending",
         "subtasks": [
@@ -637,7 +715,8 @@
             "dependencies": [],
             "details": "Build rate limiting middleware using memory-based token bucket algorithm. Track requests per user ID with sliding window approach. Implement queue system for excess requests. Return 429 status with retry-after header when limit exceeded. Store rate limit state in memory with Redis fallback option.",
             "status": "pending",
-            "testStrategy": "Test with burst requests to verify 30/min limit. Verify queue behavior under load. Test retry-after header accuracy."
+            "testStrategy": "Test with burst requests to verify 30/min limit. Verify queue behavior under load. Test retry-after header accuracy.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -646,7 +725,8 @@
             "dependencies": [],
             "details": "Add turn counter to session state tracking each interaction. Monitor approaching limit at 40, 45 turns with warning messages. Implement graceful completion flow at turn 50 with summary generation. Prevent new turns after limit reached. Update Firestore session status to completed when limit reached.",
             "status": "pending",
-            "testStrategy": "Test turn counting accuracy. Verify warnings appear at correct intervals. Test graceful completion message generation."
+            "testStrategy": "Test turn counting accuracy. Verify warnings appear at correct intervals. Test graceful completion message generation.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -657,7 +737,8 @@
             ],
             "details": "Implement sliding window for last 10 complete conversation turns. Create summarization logic for older turns using GPT-3.5 for efficiency. Maintain problem context and key learning points in summary. Build compression trigger at 15+ turns. Store compressed version in session metadata while preserving full history in Firestore.",
             "status": "pending",
-            "testStrategy": "Test compression maintains conversation coherence. Verify summary captures key points. Test performance with long conversations."
+            "testStrategy": "Test compression maintains conversation coherence. Verify summary captures key points. Test performance with long conversations.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -668,7 +749,8 @@
             ],
             "details": "Integrate tiktoken library for accurate GPT token counting. Implement pre-flight token check before API calls. Set 4000 token hard limit with 3800 soft limit for safety margin. Add token usage tracking per session and per turn. Implement message truncation strategy when approaching limits. Create token budget allocation for different message types.",
             "status": "pending",
-            "testStrategy": "Test token counting accuracy against OpenAI's tokenizer. Verify truncation preserves message meaning. Test limit enforcement prevents API errors."
+            "testStrategy": "Test token counting accuracy against OpenAI's tokenizer. Verify truncation preserves message meaning. Test limit enforcement prevents API errors.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -679,7 +761,8 @@
             ],
             "details": "Create Firestore collection for daily usage tracking with user ID and date. Implement counter for new problem starts per 24-hour UTC period. Add middleware to check daily limit before problem creation. Create automatic reset job at midnight UTC. Display remaining daily allowance in UI. Implement grace period for in-progress sessions when limit reached.",
             "status": "pending",
-            "testStrategy": "Test daily limit enforcement at boundary. Verify reset occurs at correct time. Test timezone handling for global users."
+            "testStrategy": "Test daily limit enforcement at boundary. Verify reset occurs at correct time. Test timezone handling for global users.",
+            "parentId": "undefined"
           },
           {
             "id": 6,
@@ -691,21 +774,25 @@
             ],
             "details": "Create cost calculation module with pricing for GPT-4, GPT-3.5, and Vision API calls. Store cost data in sessions collection with per-turn breakdown. Implement real-time cost accumulation during session. Add daily and monthly cost aggregation queries. Create cost dashboard component showing usage trends. Implement budget alerts at configurable thresholds.",
             "status": "pending",
-            "testStrategy": "Verify cost calculations match OpenAI pricing. Test aggregation queries accuracy. Test budget alert triggers at correct thresholds."
+            "testStrategy": "Verify cost calculations match OpenAI pricing. Test aggregation queries accuracy. Test budget alert triggers at correct thresholds.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 6,
+        "expansionPrompt": "Break down into: 1) Implement request rate limiting middleware, 2) Add session turn limits with graceful completion, 3) Create context compression algorithm, 4) Implement token counting and limits, 5) Add daily usage limits per user, 6) Implement cost tracking in Firestore"
       },
       {
-        "id": 12,
+        "id": "12",
         "title": "Implement comprehensive error handling and monitoring",
         "description": "Add robust error handling, user-friendly error messages, and system monitoring",
         "details": "Create global error boundary component using React Error Boundary. Implement API error handling with retry logic and exponential backoff. Add user-friendly error messages using shadcn Alert components. Create toast notifications for transient errors using shadcn Toast. Implement connection status monitoring for Firebase. Add loading states for all async operations. Create fallback UI for critical failures. Log errors to console with proper categorization.",
         "testStrategy": "Test API failure scenarios with network throttling. Verify retry logic works correctly. Test error boundary catches component errors. Ensure error messages are helpful. Test offline functionality gracefully degrades.",
         "priority": "medium",
         "dependencies": [
-          1,
-          4,
-          8
+          "1",
+          "4",
+          "8"
         ],
         "status": "pending",
         "subtasks": [
@@ -716,7 +803,8 @@
             "dependencies": [],
             "details": "Create components/ErrorBoundary.tsx using React's componentDidCatch and getDerivedStateFromError methods. Design fallback UI with shadcn Card and Alert components showing user-friendly error message. Include 'Try Again' button that resets error state. Log errors to console with component stack trace. Style with Tailwind for consistent appearance. Wrap entire app in App.tsx with ErrorBoundary component.",
             "status": "pending",
-            "testStrategy": "Create test component that throws error on button click. Verify error boundary catches and displays fallback UI. Test reset functionality works correctly."
+            "testStrategy": "Create test component that throws error on button click. Verify error boundary catches and displays fallback UI. Test reset functionality works correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -725,7 +813,8 @@
             "dependencies": [],
             "details": "Create lib/api-error-handler.ts with retry wrapper function supporting configurable max retries (default 3). Implement exponential backoff starting at 1000ms, doubling each retry. Handle different error types: network errors (retry), 4xx errors (no retry), 5xx errors (conditional retry). Create custom error classes for different scenarios. Add request timeout handling with AbortController. Include circuit breaker pattern for repeated failures.",
             "status": "pending",
-            "testStrategy": "Mock API failures with different status codes. Test retry attempts follow exponential backoff timing. Verify 4xx errors don't retry. Test circuit breaker activates after threshold."
+            "testStrategy": "Mock API failures with different status codes. Test retry attempts follow exponential backoff timing. Verify 4xx errors don't retry. Test circuit breaker activates after threshold.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -737,7 +826,8 @@
             ],
             "details": "Create hooks/useErrorHandler.ts for centralized error message management. Implement error message mapping for common errors (network, auth, validation). Set up shadcn Toast provider in App.tsx for transient notifications. Create ErrorAlert component using shadcn Alert for persistent errors. Add different severity levels (error, warning, info) with appropriate icons. Implement auto-dismiss for non-critical errors after 5 seconds. Create user-friendly message translations for technical errors.",
             "status": "pending",
-            "testStrategy": "Test different error types show appropriate messages. Verify toast notifications appear and auto-dismiss. Test alert components display with correct severity styling."
+            "testStrategy": "Test different error types show appropriate messages. Verify toast notifications appear and auto-dismiss. Test alert components display with correct severity styling.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -748,15 +838,23 @@
             ],
             "details": "Create components/LoadingSpinner.tsx using shadcn Skeleton for consistent loading states. Implement hooks/useConnectionStatus.ts monitoring Firebase connection using onDisconnect() and .info/connected reference. Add connection status banner showing offline/reconnecting states. Create loading states for session creation, API calls, and image uploads. Implement progressive loading with content placeholders. Add timeout handling for stuck loading states. Create offline mode detection and graceful degradation.",
             "status": "pending",
-            "testStrategy": "Test loading states appear during async operations. Simulate offline mode and verify banner appears. Test reconnection handling works properly. Verify loading timeouts trigger appropriately."
+            "testStrategy": "Test loading states appear during async operations. Simulate offline mode and verify banner appears. Test reconnection handling works properly. Verify loading timeouts trigger appropriately.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break down into: 1) Create error boundary component for React errors, 2) Implement API error handling with retry logic, 3) Add user-friendly error messages with shadcn components, 4) Create loading states and connection monitoring"
       }
     ],
     "metadata": {
-      "created": "2025-11-03T17:47:32.516Z",
-      "updated": "2025-11-03T21:43:19.190Z",
-      "description": "Tasks for master context"
+      "version": "1.0.0",
+      "lastModified": "2025-11-03T22:07:06.467Z",
+      "taskCount": 12,
+      "completedCount": 8,
+      "tags": [
+        "master"
+      ]
     }
   }
 }

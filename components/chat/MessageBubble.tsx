@@ -4,6 +4,8 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { parseTextForMath } from "@/lib/math-parser";
+import { InlineMath, DisplayMath } from "@/components/MathDisplay";
 
 export interface Message {
   id?: string;
@@ -19,6 +21,9 @@ export interface MessageBubbleProps {
 
 export function MessageBubble({ message, className }: MessageBubbleProps) {
   const isStudent = message.role === "student";
+
+  // Parse message content for math expressions
+  const segments = parseTextForMath(message.content);
 
   return (
     <div
@@ -52,7 +57,15 @@ export function MessageBubble({ message, className }: MessageBubbleProps) {
         >
           <CardContent className="p-3">
             <div className="whitespace-pre-wrap break-words">
-              {message.content}
+              {segments.map((segment, index) => {
+                if (segment.type === "inline-math") {
+                  return <InlineMath key={index} latex={segment.content} />;
+                } else if (segment.type === "display-math") {
+                  return <DisplayMath key={index} latex={segment.content} />;
+                } else {
+                  return <React.Fragment key={index}>{segment.content}</React.Fragment>;
+                }
+              })}
             </div>
             <div
               className={cn(
