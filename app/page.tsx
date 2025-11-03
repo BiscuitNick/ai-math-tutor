@@ -109,6 +109,29 @@ export default function Home() {
                   <li>• Firebase Storage</li>
                   <li>• Input validation</li>
                 </ul>
+              </CardContent>
+            </Card>
+          </Link>
+
+          {/* Image Parse Test */}
+          <Link href="/test-image-parse">
+            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-purple-200 dark:border-purple-900">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <CardTitle>Image Parsing (OCR)</CardTitle>
+                  <Badge variant="default">Task 6</Badge>
+                </div>
+                <CardDescription>
+                  Test OpenAI Vision API with Server Actions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>• GPT-4 Vision API</li>
+                  <li>• Server Actions</li>
+                  <li>• Firestore caching</li>
+                  <li>• Math problem extraction</li>
+                </ul>
                 <Badge variant="outline" className="mt-3 text-xs">
                   New!
                 </Badge>
@@ -171,7 +194,11 @@ export default function Home() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Task 6: OpenAI Vision (OCR)</span>
-                  <Badge variant="outline">Pending</Badge>
+                  <Badge variant="secondary">Complete</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Task 8: Session Management</span>
+                  <Badge variant="secondary">Complete</Badge>
                 </div>
               </div>
             </CardContent>

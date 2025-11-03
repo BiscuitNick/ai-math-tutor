@@ -319,7 +319,7 @@
           4,
           5
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -327,7 +327,7 @@
             "description": "Set up Next.js Server Action at app/actions/parse-image.ts using 'use server' directive to handle FormData uploads for image processing",
             "dependencies": [],
             "details": "Create app/actions/parse-image.ts file with 'use server' directive at the top. Export async function parseImageAction(formData: FormData) that extracts uploaded image files from FormData using formData.get('image'). Add file validation for image types (jpg, png, webp) and size limits (max 5MB). Convert uploaded file to base64 format for Vision API compatibility. Return structured response objects with success/error states instead of throwing errors. Include proper TypeScript types for return values matching useActionState pattern: { success: boolean; data?: ParsedImage; error?: string }.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test Server Action with various image formats and sizes. Verify rejection of non-image files returns error object. Test size limit enforcement. Ensure proper error response structure for invalid requests."
           },
           {
@@ -338,7 +338,7 @@
               1
             ],
             "details": "Within the Server Action, set up OpenAI client with API key from process.env.OPENAI_API_KEY. Configure Vision API call with gpt-4-vision-preview model using medium detail mode for cost optimization. Structure prompt to specifically extract mathematical problems and equations from images. Implement proper request formatting with base64 image data. Add timeout handling for long-running requests using AbortController. Configure temperature and max_tokens parameters for consistent results. Return error objects for API failures instead of throwing.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with sample math textbook images. Verify API authentication works. Test timeout handling with slow responses. Ensure consistent extraction quality. Verify error objects are returned properly."
           },
           {
@@ -349,7 +349,7 @@
               2
             ],
             "details": "Within the Server Action, parse Vision API response to extract mathematical problem text. Implement confidence scoring algorithm based on response clarity and completeness. Handle various mathematical notation formats (fractions, exponents, special symbols). Create text normalization for consistent output format. Add detection for multiple problems in single image. Return structured response with extracted text, confidence score, and detected problem boundaries in the Server Action response object. Handle edge cases like handwritten text or poor image quality with appropriate error messages in response.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with diverse textbook styles and formats. Verify confidence scoring accuracy. Test with handwritten problems. Ensure special mathematical symbols are preserved. Verify response structure matches useActionState expectations."
           },
           {
@@ -360,7 +360,7 @@
               3
             ],
             "details": "Within the Server Action, generate unique hash for each uploaded image using crypto library. Create Firestore collection 'parsed_images' with document structure containing image hash, extracted text, confidence score, and timestamp. Implement cache lookup before Vision API call using image hash. Store successful parsing results with 30-day TTL. Add cache hit/miss in response metadata. Handle Firestore connection errors gracefully with fallback to direct API call. On the client side, create component using useActionState to manage Server Action state and useFormStatus for loading indicators. Implement form submission that calls the Server Action. Display loading states, error messages, and success results based on the action state.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test cache hits with duplicate image uploads. Verify TTL expiration works correctly. Test cache miss scenarios. Ensure Firestore errors don't break functionality. Test client-side integration with useActionState shows proper loading/error/success states. Verify useFormStatus displays loading indicator during submission."
           }
         ]
@@ -755,7 +755,7 @@
     ],
     "metadata": {
       "created": "2025-11-03T17:47:32.516Z",
-      "updated": "2025-11-03T21:37:23.279Z",
+      "updated": "2025-11-03T21:43:19.190Z",
       "description": "Tasks for master context"
     }
   }
