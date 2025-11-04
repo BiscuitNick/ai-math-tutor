@@ -19,15 +19,45 @@ import { uploadImage } from "@/lib/storage";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { LoadingSpinner, ChatSkeleton } from "@/components/LoadingSpinner";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LogOut, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function TutorPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const router = useRouter();
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [initialProblem, setInitialProblem] = useState<string>("");
   const [parsingImages, setParsingImages] = useState(false);
   const [isResumingSession, setIsResumingSession] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [messageImagesMap, setMessageImagesMap] = useState<Map<string, { url: string }[]>>(new Map());
   const errorHandler = useErrorHandler();
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!user?.displayName) return "U";
+    const names = user.displayName.split(" ");
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return user.displayName[0].toUpperCase();
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+  };
 
   // Session hooks
   const { createSession, loading: createLoading, error: createError } = useCreateSession();
@@ -111,7 +141,7 @@ export default function TutorPage() {
   // Load turns into chat when resuming a session
   useEffect(() => {
     if (isResumingSession && !turnsLoading && turns.length > 0) {
-      console.log("Loading turns into chat:", turns.length);
+      console.log("Loading turns into chat:", turns.length, "for session:", currentSessionId);
 
       // Convert turns to chat messages
       const turnMessages: Message[] = turns.map((turn) => ({
@@ -133,15 +163,34 @@ export default function TutorPage() {
       setMessages(chatMessages as any);
       setIsResumingSession(false); // Reset flag after loading
     }
-  }, [isResumingSession, turns, turnsLoading, setMessages]);
+
+    // Reset resuming flag if no turns found and not loading
+    if (isResumingSession && !turnsLoading && turns.length === 0) {
+      console.log("No turns found for session:", currentSessionId);
+      setIsResumingSession(false);
+    }
+  }, [isResumingSession, turns, turnsLoading, setMessages, currentSessionId]);
 
   // Transform messages to match ChatInterface expectations
-  const chatMessages: Message[] = messages.map((msg) => ({
-    id: msg.id,
-    role: msg.role === "user" ? "student" : "tutor",
-    content: msg.content,
-    timestamp: msg.createdAt || new Date(),
-  }));
+  const chatMessages: Message[] = messages.map((msg) => {
+    const baseMessage = {
+      id: msg.id,
+      role: msg.role === "user" ? "student" : "tutor",
+      content: msg.content,
+      timestamp: msg.createdAt || new Date(),
+    };
+
+    // Attach images if this message has any
+    const images = messageImagesMap.get(msg.id);
+    if (images && images.length > 0) {
+      return {
+        ...baseMessage,
+        images: images,
+      };
+    }
+
+    return baseMessage;
+  });
 
   const handleSendMessage = async (data: { text: string; images: File[] }) => {
     console.log("=== handleSendMessage ===");
@@ -150,18 +199,27 @@ export default function TutorPage() {
     console.log("Message text:", data.text);
     console.log("Images:", data.images.length);
 
-    let messageContent = data.text;
+    let formattedProblems = "";
+    let firstMessageId = "";
 
     // Parse images if any
     if (data.images.length > 0) {
       setParsingImages(true);
 
       try {
-        const parsedTexts: string[] = [];
+        const imageDataList: { url: string }[] = [];
+        const allProblems: string[] = [];
 
         for (let i = 0; i < data.images.length; i++) {
           const file = data.images[i];
           console.log(`Parsing image ${i + 1}/${data.images.length}...`);
+
+          // Create data URL for immediate display
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
 
           // Create FormData with the file
           const formData = new FormData();
@@ -174,7 +232,35 @@ export default function TutorPage() {
             throw new Error(result.error || `Failed to parse image ${i + 1}`);
           }
 
-          parsedTexts.push(`Image ${i + 1}: ${result.data.extractedText}`);
+          const parsedText = result.data.extractedText;
+          console.log("Parsed text:", parsedText);
+
+          // Strip markdown code blocks if present
+          let cleanedText = parsedText.trim();
+          if (cleanedText.startsWith("```")) {
+            // Remove opening ```json or ``` and closing ```
+            cleanedText = cleanedText.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+          }
+
+          // Parse JSON to extract problems array
+          try {
+            const jsonData = JSON.parse(cleanedText);
+            if (jsonData.problems && Array.isArray(jsonData.problems)) {
+              allProblems.push(...jsonData.problems);
+            } else {
+              console.warn("No problems array found in JSON:", jsonData);
+              // Fallback: use the whole cleaned text
+              allProblems.push(cleanedText);
+            }
+          } catch (jsonErr) {
+            console.error("Failed to parse JSON from extracted text:", jsonErr);
+            console.error("Cleaned text was:", cleanedText);
+            // If JSON parsing fails, use the cleaned text
+            allProblems.push(cleanedText);
+          }
+
+          // Store image data for display (without parsed text)
+          imageDataList.push({ url: dataUrl });
 
           // Upload image to Firebase Storage
           try {
@@ -185,13 +271,30 @@ export default function TutorPage() {
           }
         }
 
-        // Combine text and parsed images
-        const imageContent = parsedTexts.join("\n\n");
-        messageContent = data.text
-          ? `${data.text}\n\n${imageContent}`
-          : imageContent;
+        // Format problems as LaTeX
+        formattedProblems = allProblems.map(problem => `$${problem}$`).join("\n\n");
+        console.log("Formatted problems:", formattedProblems);
 
-        console.log("Combined message content:", messageContent);
+        // Create first message (image + user text) manually
+        firstMessageId = `msg-${Date.now()}`;
+        const firstMessage = {
+          id: firstMessageId,
+          role: "user" as const,
+          content: data.text || " ", // Use space if no text to avoid empty content
+          createdAt: new Date(),
+        };
+
+        // Add first message to chat
+        setMessages(prev => [...prev, firstMessage]);
+
+        // Store images with first message ID
+        setMessageImagesMap(prev => {
+          const newMap = new Map(prev);
+          newMap.set(firstMessageId, imageDataList);
+          return newMap;
+        });
+
+        console.log("First message added with images");
       } catch (err) {
         console.error("Error parsing images:", err);
         errorHandler.showError(err instanceof Error ? err : new Error("Failed to parse images"), "image_parse_failed");
@@ -202,12 +305,17 @@ export default function TutorPage() {
       }
     }
 
+    // Determine what content to send to AI
+    const contentForAI = data.images.length > 0
+      ? formattedProblems  // If images, use formatted problems
+      : data.text;          // Otherwise use typed text
+
     // Create session if this is the first message
     let sessionIdToUse = currentSessionId;
     if (!sessionIdToUse && user) {
       console.log("Creating new session...");
       const session = await createSession({
-        problemText: messageContent.slice(0, 100), // Use first 100 chars
+        problemText: contentForAI.slice(0, 100), // Use first 100 chars
         problemType: "other",
       });
 
@@ -215,41 +323,44 @@ export default function TutorPage() {
         console.log("Session created successfully:", session.id);
         sessionIdToUse = session.id;
         setCurrentSessionId(session.id);
-        setInitialProblem(messageContent.slice(0, 100));
+        setInitialProblem(contentForAI.slice(0, 100));
       } else {
         console.error("Failed to create session");
         return;
       }
     }
 
-    // Save student's message as a turn
-    if (sessionIdToUse) {
-      console.log("Saving student turn to session:", sessionIdToUse);
+    // Save first message (image + text) as a turn if we have images
+    if (sessionIdToUse && firstMessageId) {
+      console.log("Saving image message turn to session:", sessionIdToUse);
       try {
         const turn = await addTurn(sessionIdToUse, {
           speaker: "user",
-          message: messageContent,
+          message: data.text ? data.text : "[Image]",
         });
         if (turn) {
-          console.log("Student turn saved:", turn.id);
-        } else {
-          console.error("Failed to save student turn");
+          console.log("Image message turn saved:", turn.id);
         }
       } catch (err) {
-        console.error("Exception while saving student turn:", err);
+        console.error("Exception while saving image message turn:", err);
       }
     }
 
-    // Send message to AI
+    // Send second message (formatted problems or text) to AI via append
     console.log("Sending message to AI...");
     await append({
       role: "user",
-      content: messageContent,
+      content: contentForAI,
     });
+
+    // Note: The second message will be saved as a turn via onFinish callback
   };
 
   const handleSelectSession = async (session: Session) => {
     console.log("Loading session:", session);
+    // Clear messages immediately to prevent showing old session
+    setMessages([]);
+    setMessageImagesMap(new Map());
     setCurrentSessionId(session.id);
     setInitialProblem(session.problemText);
     setIsResumingSession(true); // Flag to load turns from Firestore
@@ -260,6 +371,7 @@ export default function TutorPage() {
     setCurrentSessionId(null);
     setInitialProblem("");
     setMessages([]);
+    setMessageImagesMap(new Map());
   };
 
   const handleCompleteSession = async () => {
@@ -282,35 +394,60 @@ export default function TutorPage() {
   }
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden">
-      {/* Header with History Sidebar */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-3">
-          <HistorySidebar
-            onSelectSession={handleSelectSession}
-            onNewSession={handleNewSession}
-            currentSessionId={currentSessionId || undefined}
-          />
-          <div>
-            <h1 className="text-xl font-semibold">AI Math Tutor</h1>
-            {initialProblem && (
-              <p className="text-sm text-muted-foreground">{initialProblem}</p>
-            )}
-          </div>
-        </div>
-        {currentSessionId && currentSession?.status === "in-progress" && (
-          <button
-            onClick={handleCompleteSession}
-            className="text-sm px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-          >
-            Mark Complete
-          </button>
+    <div className="h-screen w-full flex flex-col overflow-hidden relative">
+      {/* Absolute positioned History Sidebar button - Top Left */}
+      <div className="fixed top-4 left-4 z-50">
+        <HistorySidebar
+          onSelectSession={handleSelectSession}
+          onNewSession={handleNewSession}
+          currentSessionId={currentSessionId || undefined}
+        />
+      </div>
+
+      {/* Absolute positioned User Avatar - Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        {user && !user.isAnonymous && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "User"} />
+                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user.displayName || "User"}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/tutor">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>My Sessions</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/test">
+                  <span>Test Pages</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
       {/* Error displays */}
       {error && (
-        <div className="flex-shrink-0 px-4 pt-4">
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md px-4">
           <ErrorAlert
             title="Unable to send message"
             message={error.message}
@@ -324,23 +461,26 @@ export default function TutorPage() {
       )}
 
       {turnsLoading && turns.length === 0 && currentSessionId && (
-        <div className="flex-shrink-0 p-4">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40">
           <LoadingSpinner size="md" text="Loading session..." />
         </div>
       )}
 
       {parsingImages && (
-        <div className="flex-shrink-0 p-4 bg-muted/20">
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-40 bg-muted/90 backdrop-blur px-4 py-2 rounded-lg">
           <LoadingSpinner size="md" text="Parsing images with AI..." />
         </div>
       )}
 
-      {/* Chat Interface */}
+      {/* Chat Interface - Full Height */}
       <ChatInterface
         messages={chatMessages}
         onSendMessage={handleSendMessage}
         isLoading={isLoading || createLoading || parsingImages}
-        className="flex-1"
+        className="h-full w-full"
+        currentSessionId={currentSessionId}
+        currentSession={currentSession}
+        onCompleteSession={handleCompleteSession}
       />
     </div>
   );

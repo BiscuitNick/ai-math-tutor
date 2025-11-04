@@ -4,7 +4,6 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { AppHeader } from "@/components/AppHeader";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -41,7 +40,6 @@ export default function RootLayout({
         >
           <ClientErrorBoundary>
             <AuthProvider>
-              <AppHeader />
               {children}
               <Toaster position="top-right" richColors closeButton />
             </AuthProvider>

@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Send, Image as ImageIcon, X, Loader2 } from "lucide-react";
+import { Send, Image as ImageIcon, X, Loader2, CheckCircle } from "lucide-react";
 import { MathSymbolPicker } from "@/components/MathSymbolPicker";
 import Image from "next/image";
 
@@ -15,6 +15,9 @@ export interface EnhancedChatInputProps {
   maxLength?: number;
   maxImages?: number;
   className?: string;
+  currentSessionId?: string | null;
+  currentSession?: any;
+  onCompleteSession?: () => void;
 }
 
 export function EnhancedChatInput({
@@ -23,7 +26,10 @@ export function EnhancedChatInput({
   placeholder = "Type your response or paste/upload images...",
   maxLength = 1000,
   maxImages = 5,
-  className
+  className,
+  currentSessionId,
+  currentSession,
+  onCompleteSession
 }: EnhancedChatInputProps) {
   const [message, setMessage] = useState("");
   const [images, setImages] = useState<File[]>([]);
@@ -231,6 +237,20 @@ export function EnhancedChatInput({
             onSymbolSelect={handleSymbolSelect}
             disabled={isLoading}
           />
+
+          {/* Mark Complete Button */}
+          {currentSessionId && currentSession?.status === "in-progress" && onCompleteSession && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onCompleteSession}
+              className="h-8 text-xs bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-green-700 dark:text-green-400"
+            >
+              <CheckCircle className="h-4 w-4 mr-1" />
+              Mark Complete
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center gap-4 text-xs">
