@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { useChat } from "@/hooks/useChat";
 import type { Message } from "@/components/chat/MessageBubble";
@@ -14,23 +14,28 @@ import {
   useTurns,
 } from "@/hooks/useSession";
 import { useAuth } from "@/contexts/AuthContext";
+import { parseImageAction } from "@/app/actions/parse-image";
+import { uploadImage } from "@/lib/storage";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from "lucide-react";
 
-export default function TestAIChatPage() {
-  const { user, signInAnon, loading: authLoading } = useAuth();
+export default function TutorPage() {
+  const { user, loading: authLoading } = useAuth();
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [initialProblem, setInitialProblem] = useState<string>("");
+  const [parsingImages, setParsingImages] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [isResumingSession, setIsResumingSession] = useState(false);
 
-  // Auto sign-in anonymously if not authenticated
+  // Redirect to login if not authenticated
   useEffect(() => {
-    if (!authLoading && !user) {
-      console.log("No user detected, signing in anonymously...");
-      signInAnon().catch((err) => {
-        console.error("Failed to sign in anonymously:", err);
-      });
+    if (!authLoading && (!user || user.isAnonymous)) {
+      console.log("No authenticated user detected, redirecting to login...");
+      window.location.href = "/";
     } else if (user) {
       console.log("User authenticated:", user.uid, "isAnonymous:", user.isAnonymous);
     }
-  }, [user, authLoading, signInAnon]);
+  }, [user, authLoading]);
 
   // Session hooks
   const { createSession, loading: createLoading, error: createError } = useCreateSession();
@@ -75,15 +80,13 @@ export default function TestAIChatPage() {
         } else {
           console.error("Failed to save tutor turn");
         }
-      } else {
-        console.warn("Not saving tutor turn - sessionId:", currentSessionId, "role:", message.role);
       }
     },
   });
 
-  // Load turns into chat when session changes
+  // Load turns into chat when resuming a session
   useEffect(() => {
-    if (!turnsLoading && turns.length > 0) {
+    if (isResumingSession && !turnsLoading && turns.length > 0) {
       console.log("Loading turns into chat:", turns.length);
 
       // Convert turns to chat messages
@@ -96,16 +99,17 @@ export default function TestAIChatPage() {
 
       // Transform to chat format
       const chatMessages = turnMessages.map((msg) => ({
-        id: msg.id,
+        id: `turn-${msg.id}`,
         role: msg.role === "student" ? "user" : "assistant",
         content: msg.content,
         createdAt: msg.timestamp,
       }));
 
-      console.log("Setting messages:", chatMessages);
+      console.log("Setting messages from turns:", chatMessages);
       setMessages(chatMessages as any);
+      setIsResumingSession(false); // Reset flag after loading
     }
-  }, [turns, turnsLoading, setMessages]);
+  }, [isResumingSession, turns, turnsLoading, setMessages]);
 
   // Transform messages to match ChatInterface expectations
   const chatMessages: Message[] = messages.map((msg) => ({
@@ -115,29 +119,83 @@ export default function TestAIChatPage() {
     timestamp: msg.createdAt || new Date(),
   }));
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (data: { text: string; images: File[] }) => {
     console.log("=== handleSendMessage ===");
     console.log("User:", user?.uid);
     console.log("Current Session ID:", currentSessionId);
-    console.log("Message content:", content);
+    console.log("Message text:", data.text);
+    console.log("Images:", data.images.length);
 
-    let sessionIdToUse = currentSessionId;
+    let messageContent = data.text;
+
+    // Parse images if any
+    if (data.images.length > 0) {
+      setParsingImages(true);
+      setParseError(null);
+
+      try {
+        const parsedTexts: string[] = [];
+
+        for (let i = 0; i < data.images.length; i++) {
+          const file = data.images[i];
+          console.log(`Parsing image ${i + 1}/${data.images.length}...`);
+
+          // Create FormData with the file
+          const formData = new FormData();
+          formData.append("image", file);
+
+          // Parse the image
+          const result = await parseImageAction(formData);
+
+          if (!result.success || !result.data) {
+            throw new Error(result.error || `Failed to parse image ${i + 1}`);
+          }
+
+          parsedTexts.push(`Image ${i + 1}: ${result.data.extractedText}`);
+
+          // Upload image to Firebase Storage
+          try {
+            await uploadImage(file);
+          } catch (uploadErr) {
+            console.error("Failed to upload image to storage:", uploadErr);
+            // Continue anyway, parsing is more important
+          }
+        }
+
+        // Combine text and parsed images
+        const imageContent = parsedTexts.join("\n\n");
+        messageContent = data.text
+          ? `${data.text}\n\n${imageContent}`
+          : imageContent;
+
+        console.log("Combined message content:", messageContent);
+      } catch (err) {
+        console.error("Error parsing images:", err);
+        setParseError(err instanceof Error ? err.message : "Failed to parse images");
+        setParsingImages(false);
+        return;
+      } finally {
+        setParsingImages(false);
+      }
+    }
 
     // Create session if this is the first message
+    let sessionIdToUse = currentSessionId;
     if (!sessionIdToUse && user) {
       console.log("Creating new session...");
       const session = await createSession({
-        problemText: content.slice(0, 100), // Use first 100 chars as problem summary
-        problemType: "other", // Default problem type
+        problemText: messageContent.slice(0, 100), // Use first 100 chars
+        problemType: "other",
       });
 
       if (session) {
         console.log("Session created successfully:", session.id);
         sessionIdToUse = session.id;
         setCurrentSessionId(session.id);
-        setInitialProblem(content.slice(0, 100));
+        setInitialProblem(messageContent.slice(0, 100));
       } else {
         console.error("Failed to create session");
+        return;
       }
     }
 
@@ -147,25 +205,23 @@ export default function TestAIChatPage() {
       try {
         const turn = await addTurn(sessionIdToUse, {
           speaker: "user",
-          message: content,
+          message: messageContent,
         });
         if (turn) {
           console.log("Student turn saved:", turn.id);
         } else {
-          console.error("Failed to save student turn - addTurn returned null/undefined");
+          console.error("Failed to save student turn");
         }
       } catch (err) {
         console.error("Exception while saving student turn:", err);
       }
-    } else {
-      console.warn("No session ID available, cannot save turn");
     }
 
     // Send message to AI
     console.log("Sending message to AI...");
     await append({
       role: "user",
-      content,
+      content: messageContent,
     });
   };
 
@@ -173,7 +229,7 @@ export default function TestAIChatPage() {
     console.log("Loading session:", session);
     setCurrentSessionId(session.id);
     setInitialProblem(session.problemText);
-    // Turns will be loaded automatically by useTurns hook
+    setIsResumingSession(true); // Flag to load turns from Firestore
   };
 
   const handleNewSession = () => {
@@ -192,10 +248,24 @@ export default function TestAIChatPage() {
     }
   };
 
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user || user.isAnonymous) {
+    return null;
+  }
+
   return (
-    <div className="h-screen w-full flex flex-col">
+    <div className="h-[calc(100vh-3.5rem)] w-full flex flex-col overflow-hidden">
       {/* Header with History Sidebar */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
           <HistorySidebar
             onSelectSession={handleSelectSession}
@@ -219,46 +289,46 @@ export default function TestAIChatPage() {
         )}
       </div>
 
+      {/* Error displays */}
       {error && (
-        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3">
+        <div className="flex-shrink-0 bg-destructive/10 border border-destructive text-destructive px-4 py-3">
           <div className="flex items-start gap-2">
-            <svg
-              className="h-5 w-5 flex-shrink-0 mt-0.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="font-medium">Unable to send message</p>
               <p className="text-sm mt-1">{error.message}</p>
-              {error.message.includes("API key") && (
-                <p className="text-sm mt-2 opacity-80">
-                  Please check your environment configuration and ensure OPENAI_API_KEY is set correctly.
-                </p>
-              )}
             </div>
           </div>
         </div>
       )}
 
+      {parseError && (
+        <Alert variant="destructive" className="flex-shrink-0 mx-4 mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{parseError}</AlertDescription>
+        </Alert>
+      )}
+
       {turnsLoading && turns.length === 0 && currentSessionId && (
-        <div className="flex items-center justify-center p-4 text-muted-foreground">
+        <div className="flex-shrink-0 flex items-center justify-center p-4 text-muted-foreground">
           <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2" />
           Loading session...
         </div>
       )}
 
+      {parsingImages && (
+        <div className="flex-shrink-0 flex items-center justify-center p-4 text-muted-foreground bg-muted/50">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          Parsing images with AI...
+        </div>
+      )}
+
+      {/* Chat Interface */}
       <ChatInterface
         messages={chatMessages}
         onSendMessage={handleSendMessage}
-        isLoading={isLoading || createLoading}
+        isLoading={isLoading || createLoading || parsingImages}
+        className="flex-1"
       />
     </div>
   );

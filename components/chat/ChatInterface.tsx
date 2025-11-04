@@ -5,13 +5,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MessageBubble, type Message } from "./MessageBubble";
-import { ChatInput } from "./ChatInput";
+import { EnhancedChatInput } from "./EnhancedChatInput";
 import { TypingIndicator } from "./TypingIndicator";
 import { ArrowDown } from "lucide-react";
 
 export interface ChatInterfaceProps {
   messages?: Message[];
-  onSendMessage?: (message: string) => void | Promise<void>;
+  onSendMessage?: (data: { text: string; images: File[] }) => void | Promise<void>;
   isLoading?: boolean;
   className?: string;
 }
@@ -58,18 +58,10 @@ export function ChatInterface({
       "flex flex-col h-full w-full",
       className
     )}>
-      {/* Header */}
-      <div className="flex-shrink-0 border-b px-4 py-3 sm:px-6">
-        <h2 className="text-lg font-semibold">Math Tutor</h2>
-        <p className="text-sm text-muted-foreground">
-          Let's work through this problem together
-        </p>
-      </div>
-
       {/* Message Area */}
       <div className="flex-1 min-h-0 relative">
         <ScrollArea className="h-full" ref={scrollAreaRef} onScrollCapture={handleScroll}>
-          <div className="flex flex-col gap-4 p-4 sm:p-6">
+          <div className="flex flex-col gap-4 p-4">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full text-muted-foreground">
                 <p>Start a conversation by asking a question...</p>
@@ -82,9 +74,6 @@ export function ChatInterface({
                     message={message}
                   />
                 ))}
-
-                {/* Typing indicator */}
-                {isLoading && <TypingIndicator />}
 
                 {/* Scroll anchor */}
                 <div ref={messagesEndRef} />
@@ -108,8 +97,8 @@ export function ChatInterface({
       </div>
 
       {/* Input Area */}
-      <div className="flex-shrink-0 border-t p-4 sm:p-6">
-        <ChatInput onSend={onSendMessage} isLoading={isLoading} />
+      <div className="flex-shrink-0 border-t p-4">
+        <EnhancedChatInput onSend={onSendMessage} isLoading={isLoading} />
       </div>
     </div>
   );

@@ -1,223 +1,132 @@
-import Link from "next/link";
+"use client";
+
+import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 export default function Home() {
+  const { user, loading, error, signInWithGoogle } = useAuth();
+  const router = useRouter();
+
+  // Redirect to tutor if already logged in
+  useEffect(() => {
+    if (!loading && user && !user.isAnonymous) {
+      router.push("/tutor");
+    }
+  }, [user, loading, router]);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      // Redirect will happen automatically via useEffect
+    } catch (err) {
+      console.error("Sign-in error:", err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <main className="container mx-auto px-4 py-16">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold tracking-tight mb-2">
             AI Math Tutor
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            A Socratic method-based math tutoring application that guides students through problem-solving
+          <p className="text-muted-foreground">
+            Learn math with personalized AI guidance
           </p>
         </div>
 
-        {/* Test Pages Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
-          {/* Chat UI Test */}
-          <Link href="/test-chat">
-            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle>Chat UI Test</CardTitle>
-                  <Badge variant="secondary">Task 3</Badge>
-                </div>
-                <CardDescription>
-                  Test the chat interface components with mock data
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Message bubbles</li>
-                  <li>• Auto-scroll behavior</li>
-                  <li>• Input validation</li>
-                  <li>• Typing indicators</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </Link>
+        <Card>
+          <CardHeader>
+            <CardTitle>Welcome</CardTitle>
+            <CardDescription>
+              Sign in to start your math learning journey
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-          {/* AI Chat Test */}
-          <Link href="/test-ai-chat">
-            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-blue-200 dark:border-blue-900">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle>AI Chat Test</CardTitle>
-                  <Badge variant="default">Task 4</Badge>
-                </div>
-                <CardDescription>
-                  Test Socratic tutoring with GPT-4
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Live AI responses</li>
-                  <li>• Socratic method</li>
-                  <li>• Streaming chat</li>
-                  <li>• Error handling</li>
-                </ul>
-                <Badge variant="outline" className="mt-3 text-xs">
-                  Requires OpenAI API key
-                </Badge>
-              </CardContent>
-            </Card>
-          </Link>
+            <Button
+              onClick={handleGoogleSignIn}
+              className="w-full"
+              size="lg"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    />
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      fill="#34A853"
+                    />
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      fill="#FBBC05"
+                    />
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      fill="#EA4335"
+                    />
+                  </svg>
+                  Continue with Google
+                </>
+              )}
+            </Button>
 
-          {/* Test Components */}
-          <Link href="/test-components">
-            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle>Components Test</CardTitle>
-                  <Badge variant="outline">Dev</Badge>
-                </div>
-                <CardDescription>
-                  View all shadcn/ui components
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Button variants</li>
-                  <li>• Card styles</li>
-                  <li>• Input components</li>
-                  <li>• Theme toggle</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </Link>
+            <div className="text-center text-sm text-muted-foreground">
+              <p>By signing in, you agree to our terms and privacy policy</p>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Problem Input Test */}
-          <Link href="/test-problem-input">
-            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-green-200 dark:border-green-900">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle>Problem Input</CardTitle>
-                  <Badge variant="default">Task 5</Badge>
-                </div>
-                <CardDescription>
-                  Test problem input system with text and image upload
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Text input with symbols</li>
-                  <li>• Image upload (drag-drop)</li>
-                  <li>• Firebase Storage</li>
-                  <li>• Input validation</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </Link>
-
-          {/* Image Parse Test */}
-          <Link href="/test-image-parse">
-            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-purple-200 dark:border-purple-900">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle>Image Parsing (OCR)</CardTitle>
-                  <Badge variant="default">Task 6</Badge>
-                </div>
-                <CardDescription>
-                  Test OpenAI Vision API with Server Actions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• GPT-4 Vision API</li>
-                  <li>• Server Actions</li>
-                  <li>• Firestore caching</li>
-                  <li>• Math problem extraction</li>
-                </ul>
-                <Badge variant="outline" className="mt-3 text-xs">
-                  New!
-                </Badge>
-              </CardContent>
-            </Card>
-          </Link>
-
-          {/* Firebase Test */}
-          <Link href="/firebase-test">
-            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle>Firebase Test</CardTitle>
-                  <Badge variant="outline">Task 2</Badge>
-                </div>
-                <CardDescription>
-                  Test Firebase connection and authentication
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Connection status</li>
-                  <li>• Authentication</li>
-                  <li>• Firestore access</li>
-                  <li>• Storage access</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </Link>
+        <div className="mt-8 text-center">
+          <h3 className="font-semibold mb-3">Why choose AI Math Tutor?</h3>
+          <div className="grid gap-3 text-sm text-muted-foreground">
+            <div className="flex items-start gap-2">
+              <div className="mt-0.5">✓</div>
+              <div className="text-left">Socratic method teaching - learn by understanding, not just memorizing</div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="mt-0.5">✓</div>
+              <div className="text-left">Upload images of problems or type them directly</div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="mt-0.5">✓</div>
+              <div className="text-left">Track your progress with session history</div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="mt-0.5">✓</div>
+              <div className="text-left">Get personalized hints when you're stuck</div>
+            </div>
+          </div>
         </div>
-
-        {/* Status Section */}
-        <div className="mt-16 max-w-3xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>Implementation Status</CardTitle>
-              <CardDescription>Current development progress</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 1: Firebase Setup</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 2: Authentication</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 3: Chat UI Components</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 4: AI Integration (GPT-4)</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 5: Problem Input System</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 6: OpenAI Vision (OCR)</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 7: KaTeX Math Rendering</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 8: Session Management</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Task 9: History Sidebar</span>
-                  <Badge variant="secondary">Complete</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-16 text-center text-sm text-muted-foreground">
-          <p>Built with Next.js 15, React 19, TypeScript, and shadcn/ui</p>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

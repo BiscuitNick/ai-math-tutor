@@ -75,10 +75,10 @@ export function HistorySidebar({
   }, [open, user, statusFilter]);
 
   // Apply search filter
-  const filteredSessions = sessions.filter((session) => {
+  const filteredSessions = (sessions || []).filter((session) => {
     const matchesSearch =
       searchQuery === "" ||
-      session.problem.toLowerCase().includes(searchQuery.toLowerCase());
+      session.problemText.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
@@ -93,14 +93,20 @@ export function HistorySidebar({
         startAfter: reset ? undefined : lastDoc,
       });
 
+      console.log("Loaded sessions:", result);
+
       if (reset) {
-        setSessions(result.sessions);
+        setSessions(result);
       } else {
-        setSessions((prev) => [...prev, ...result.sessions]);
+        setSessions((prev) => [...(prev || []), ...result]);
       }
 
-      setLastDoc(result.lastDoc);
-      setHasMore(result.hasMore);
+      // Set lastDoc to the ID of the last session for pagination
+      if (result.length > 0) {
+        setLastDoc(result[result.length - 1].id);
+      }
+
+      setHasMore(result.length >= SESSIONS_PER_PAGE);
     } catch (error) {
       console.error("Error loading sessions:", error);
     } finally {
@@ -116,7 +122,7 @@ export function HistorySidebar({
 
   function getStatusBadge(status: SessionStatus) {
     const variants: Record<SessionStatus, { variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode; label: string }> = {
-      active: {
+      "in-progress": {
         variant: "default",
         icon: <Clock className="h-3 w-3 mr-1" />,
         label: "Active",
@@ -150,10 +156,10 @@ export function HistorySidebar({
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="w-full sm:w-[400px] p-0">
-        <div className="flex flex-col h-full">
+      <SheetContent side="left" className="w-full sm:w-[400px] p-0 flex flex-col">
+        <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <SheetHeader className="p-6 pb-4">
+          <SheetHeader className="p-6 pb-4 flex-shrink-0">
             <SheetTitle>Session History</SheetTitle>
             <SheetDescription>
               View and resume past math problem sessions
@@ -161,7 +167,7 @@ export function HistorySidebar({
           </SheetHeader>
 
           {/* New Session Button */}
-          <div className="px-6 pb-4">
+          <div className="px-6 pb-4 flex-shrink-0">
             <Button
               onClick={() => {
                 onNewSession?.();
@@ -175,7 +181,7 @@ export function HistorySidebar({
           </div>
 
           {/* Search and Filters */}
-          <div className="px-6 pb-4 space-y-3">
+          <div className="px-6 pb-4 space-y-3 flex-shrink-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -198,9 +204,9 @@ export function HistorySidebar({
                   All
                 </Button>
                 <Button
-                  variant={statusFilter === "active" ? "default" : "outline"}
+                  variant={statusFilter === "in-progress" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setStatusFilter("active")}
+                  onClick={() => setStatusFilter("in-progress")}
                 >
                   Active
                 </Button>
@@ -216,9 +222,10 @@ export function HistorySidebar({
           </div>
 
           {/* Session List */}
-          <ScrollArea className="flex-1 px-6">
-            <div className="space-y-3 pb-6">
-              {loading && sessions.length === 0 ? (
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full px-6">
+              <div className="space-y-3 pb-6">
+              {loading && (!sessions || sessions.length === 0) ? (
                 // Loading skeletons
                 Array.from({ length: 5 }).map((_, i) => (
                   <Card key={i}>
@@ -255,12 +262,12 @@ export function HistorySidebar({
                     <CardHeader className="p-4">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <CardTitle className="text-sm line-clamp-2">
-                          {session.problem}
+                          {session.problemText}
                         </CardTitle>
                         {getStatusBadge(session.status)}
                       </div>
                       <CardDescription className="text-xs">
-                        {formatDistanceToNow(session.startedAt, { addSuffix: true })}
+                        {formatDistanceToNow(session.createdAt, { addSuffix: true })}
                         {session.turnCount > 0 && ` • ${session.turnCount} messages`}
                       </CardDescription>
                     </CardHeader>
@@ -280,13 +287,14 @@ export function HistorySidebar({
               )}
 
               {/* Loading indicator for pagination */}
-              {loading && sessions.length > 0 && (
+              {loading && sessions && sessions.length > 0 && (
                 <div className="text-center py-4">
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 </div>
               )}
-            </div>
-          </ScrollArea>
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

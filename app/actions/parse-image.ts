@@ -205,7 +205,16 @@ Format your response as JSON with this structure:
       };
 
       try {
-        parsedResponse = JSON.parse(text);
+        // Remove markdown code blocks if present
+        let cleanedText = text.trim();
+        if (cleanedText.startsWith("```")) {
+          // Remove ```json or ``` from start
+          cleanedText = cleanedText.replace(/^```(?:json)?\s*\n/, "");
+          // Remove closing ```
+          cleanedText = cleanedText.replace(/\n```\s*$/, "");
+        }
+
+        parsedResponse = JSON.parse(cleanedText);
       } catch {
         // If not JSON, treat entire response as single problem
         parsedResponse = {

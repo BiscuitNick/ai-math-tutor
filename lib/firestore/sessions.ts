@@ -341,12 +341,16 @@ export async function addTurn(
 ): Promise<Turn> {
   const now = Timestamp.now();
 
-  const turnData: Omit<TurnDocument, "userId"> = {
+  const turnData: any = {
     speaker: turn.speaker,
     message: turn.message,
     timestamp: now,
-    hintLevel: turn.hintLevel,
   };
+
+  // Only include hintLevel if it's defined
+  if (turn.hintLevel !== undefined) {
+    turnData.hintLevel = turn.hintLevel;
+  }
 
   const turnsRef = getTurnsCollectionRef(userId, sessionId);
   const docRef = await addDoc(turnsRef, turnData);

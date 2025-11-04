@@ -14,7 +14,7 @@ import { MathSymbolPicker } from "@/components/MathSymbolPicker";
 import { useRef } from "react";
 
 interface ProblemInputProps {
-  onSubmit: (problem: { type: "text" | "image"; content: string }) => void;
+  onSubmit: (problem: { type: "text"; content: string } | { type: "image"; content: string; file: File }) => void;
   disabled?: boolean;
 }
 
@@ -137,8 +137,8 @@ export function ProblemInput({ onSubmit, disabled = false }: ProblemInputProps) 
         }
       });
 
-      // Submit with the Firebase Storage URL
-      onSubmit({ type: "image", content: imageUrl });
+      // Submit with both the Firebase Storage URL and the File object
+      onSubmit({ type: "image", content: imageUrl, file: uploadedImage });
       handleRemoveImage();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload image");
