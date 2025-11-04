@@ -16,26 +16,18 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { parseImageAction } from "@/app/actions/parse-image";
 import { uploadImage } from "@/lib/storage";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { ErrorAlert } from "@/components/ErrorAlert";
+import { LoadingSpinner, ChatSkeleton } from "@/components/LoadingSpinner";
 
 export default function TutorPage() {
   const { user, loading: authLoading } = useAuth();
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [initialProblem, setInitialProblem] = useState<string>("");
   const [parsingImages, setParsingImages] = useState(false);
-  const [parseError, setParseError] = useState<string | null>(null);
   const [isResumingSession, setIsResumingSession] = useState(false);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && (!user || user.isAnonymous)) {
-      console.log("No authenticated user detected, redirecting to login...");
-      window.location.href = "/";
-    } else if (user) {
-      console.log("User authenticated:", user.uid, "isAnonymous:", user.isAnonymous);
-    }
-  }, [user, authLoading]);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const errorHandler = useErrorHandler();
 
   // Session hooks
   const { createSession, loading: createLoading, error: createError } = useCreateSession();
@@ -44,24 +36,12 @@ export default function TutorPage() {
   const { addTurn, error: addTurnError } = useAddTurn();
   const { turns, loading: turnsLoading } = useTurns(currentSessionId);
 
-  // Log session hook errors
-  useEffect(() => {
-    if (createError) {
-      console.error("Create session error:", createError);
-    }
-  }, [createError]);
-
-  useEffect(() => {
-    if (addTurnError) {
-      console.error("Add turn error:", addTurnError);
-    }
-  }, [addTurnError]);
-
   // Chat hook
   const { messages, append, isLoading, error, setMessages } = useChat({
     streamProtocol: 'text',
     onError: (error) => {
       console.error("Chat error:", error);
+      errorHandler.showError(error);
     },
     onFinish: async (message) => {
       console.log("=== onFinish callback ===");
@@ -83,6 +63,50 @@ export default function TutorPage() {
       }
     },
   });
+
+  // Timeout handling for stuck loading states
+  useEffect(() => {
+    if (isLoading || createLoading || parsingImages || turnsLoading) {
+      // Set a timeout for 30 seconds
+      const timeoutId = setTimeout(() => {
+        setLoadingTimeout(true);
+        errorHandler.showError(
+          new Error("Request is taking longer than expected. Please try again."),
+          "timeout"
+        );
+      }, 30000); // 30 seconds
+
+      return () => {
+        clearTimeout(timeoutId);
+        setLoadingTimeout(false);
+      };
+    }
+  }, [isLoading, createLoading, parsingImages, turnsLoading, errorHandler]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && (!user || user.isAnonymous)) {
+      console.log("No authenticated user detected, redirecting to login...");
+      window.location.href = "/";
+    } else if (user) {
+      console.log("User authenticated:", user.uid, "isAnonymous:", user.isAnonymous);
+    }
+  }, [user, authLoading]);
+
+  // Log session hook errors and show user-friendly messages
+  useEffect(() => {
+    if (createError) {
+      console.error("Create session error:", createError);
+      errorHandler.showError(createError, "firebase_connection_lost");
+    }
+  }, [createError, errorHandler]);
+
+  useEffect(() => {
+    if (addTurnError) {
+      console.error("Add turn error:", addTurnError);
+      errorHandler.showError(addTurnError, "firebase_connection_lost");
+    }
+  }, [addTurnError, errorHandler]);
 
   // Load turns into chat when resuming a session
   useEffect(() => {
@@ -131,7 +155,6 @@ export default function TutorPage() {
     // Parse images if any
     if (data.images.length > 0) {
       setParsingImages(true);
-      setParseError(null);
 
       try {
         const parsedTexts: string[] = [];
@@ -171,7 +194,7 @@ export default function TutorPage() {
         console.log("Combined message content:", messageContent);
       } catch (err) {
         console.error("Error parsing images:", err);
-        setParseError(err instanceof Error ? err.message : "Failed to parse images");
+        errorHandler.showError(err instanceof Error ? err : new Error("Failed to parse images"), "image_parse_failed");
         setParsingImages(false);
         return;
       } finally {
@@ -250,11 +273,7 @@ export default function TutorPage() {
 
   // Show loading while checking auth
   if (authLoading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingSpinner size="lg" text="Loading..." fullScreen />;
   }
 
   // Don't render if not authenticated (will redirect)
@@ -263,7 +282,7 @@ export default function TutorPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] w-full flex flex-col overflow-hidden">
+    <div className="h-screen w-full flex flex-col overflow-hidden">
       {/* Header with History Sidebar */}
       <div className="flex-shrink-0 flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
@@ -291,35 +310,28 @@ export default function TutorPage() {
 
       {/* Error displays */}
       {error && (
-        <div className="flex-shrink-0 bg-destructive/10 border border-destructive text-destructive px-4 py-3">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-medium">Unable to send message</p>
-              <p className="text-sm mt-1">{error.message}</p>
-            </div>
-          </div>
+        <div className="flex-shrink-0 px-4 pt-4">
+          <ErrorAlert
+            title="Unable to send message"
+            message={error.message}
+            severity="error"
+            dismissible={true}
+            onDismiss={() => {
+              // Error will clear on next successful message
+            }}
+          />
         </div>
       )}
 
-      {parseError && (
-        <Alert variant="destructive" className="flex-shrink-0 mx-4 mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{parseError}</AlertDescription>
-        </Alert>
-      )}
-
       {turnsLoading && turns.length === 0 && currentSessionId && (
-        <div className="flex-shrink-0 flex items-center justify-center p-4 text-muted-foreground">
-          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2" />
-          Loading session...
+        <div className="flex-shrink-0 p-4">
+          <LoadingSpinner size="md" text="Loading session..." />
         </div>
       )}
 
       {parsingImages && (
-        <div className="flex-shrink-0 flex items-center justify-center p-4 text-muted-foreground bg-muted/50">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          Parsing images with AI...
+        <div className="flex-shrink-0 p-4 bg-muted/20">
+          <LoadingSpinner size="md" text="Parsing images with AI..." />
         </div>
       )}
 

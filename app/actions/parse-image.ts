@@ -181,8 +181,6 @@ Format your response as JSON with this structure:
             ],
           },
         ],
-        maxTokens: 1000,
-        temperature: 0.2, // Low temperature for consistent extraction
         abortSignal: controller.signal,
       });
 

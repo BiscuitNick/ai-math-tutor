@@ -38,7 +38,7 @@ import type {
 /**
  * Convert Firestore timestamp to Date
  */
-function timestampToDate(timestamp: Timestamp): Date {
+function timestampToDate(timestamp: Timestamp | any): Date {
   return timestamp.toDate();
 }
 

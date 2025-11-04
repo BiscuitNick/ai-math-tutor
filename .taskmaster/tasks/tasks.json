@@ -2,7 +2,7 @@
   "master": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Set up shadcn/ui and core UI components",
         "description": "Install and configure shadcn/ui with Tailwind CSS, then set up essential UI components needed for the chat interface",
         "details": "Execute: npx shadcn@latest init -y with New York style, neutral color. Install core components: Button, Card, Input, Textarea, ScrollArea, Alert, Toast, Skeleton, Badge, Sheet, Tabs, Popover, Tooltip, Dialog. Configure the components directory structure at @/components. Update globals.css to integrate shadcn's CSS variables. Test that all components render correctly with proper theming.",
@@ -51,7 +51,7 @@
         "expansionPrompt": "Break down into: 1) Initialize shadcn/ui with Tailwind config and base styles, 2) Install and test core UI components (Button, Card, Input, etc.), 3) Create component showcase page and verify dark mode"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Implement Firebase configuration and authentication setup",
         "description": "Set up Firebase SDK, configure Firestore database, Storage, and implement anonymous/authenticated user sessions",
         "details": "Install firebase and firebase-admin SDKs. Create lib/firebase.ts with initializeApp configuration. Set up Firestore with proper security rules for sessions collection. Implement Firebase Storage for image uploads with 5MB limit. Create auth context provider using Firebase Auth for anonymous and authenticated users. Configure environment variables for Firebase config. Set up proper error handling and connection status monitoring.",
@@ -128,7 +128,7 @@
         "expansionPrompt": "Break down into: 1) Install Firebase SDK and create configuration module, 2) Set up Firestore database with security rules, 3) Configure Firebase Storage for image uploads, 4) Implement auth context provider for anonymous/authenticated users, 5) Create test endpoints and error handling"
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Create chat UI with Socratic dialogue components",
         "description": "Build the main chat interface using shadcn components with message bubbles, input area, and proper scrolling behavior",
         "details": "Create components/chat/ChatInterface.tsx using shadcn ScrollArea for message container. Implement MessageBubble component extending Card with student/tutor styling. Add ChatInput component with Textarea and send button. Implement auto-scroll to latest message using useEffect and refs. Add loading states with Skeleton components. Create proper TypeScript interfaces for Message type. Style with Tailwind for responsive design.",
@@ -193,7 +193,7 @@
         "expansionPrompt": "Break down into: 1) Create ChatInterface layout with ScrollArea, 2) Implement MessageBubble component with student/tutor styling, 3) Build ChatInput with validation and send functionality, 4) Add auto-scroll behavior and loading states"
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Integrate Vercel AI SDK with OpenAI GPT-4",
         "description": "Set up Vercel AI SDK for streaming chat responses and implement the Socratic system prompt",
         "details": "Install @ai-sdk/openai and ai packages. Create app/api/chat/route.ts implementing POST endpoint using Vercel AI SDK's streamText function. Implement the complete Socratic system prompt with strict rules about not providing direct answers. Add conversation context management keeping last 10 turns. Configure proper error handling and retry logic. Implement token counting to stay under 4000 token limit. Add proper TypeScript types for API requests/responses.",
@@ -270,7 +270,7 @@
         "expansionPrompt": "Break down into: 1) Install Vercel AI SDK and create API route structure, 2) Implement Socratic system prompt with strict guidelines, 3) Add streaming response handling with proper types, 4) Implement token counting and context management, 5) Add error handling and retry logic"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Implement problem input system with text and image upload",
         "description": "Create tabbed interface for problem input supporting both text entry and image upload with OCR",
         "details": "Create ProblemInput component using shadcn Tabs with 'Type Problem' and 'Upload Image' tabs. Implement text input with Textarea component, 500 character limit, and validation. Add drag-and-drop image upload using Input type='file' accepting JPG/PNG/WEBP up to 5MB. Create preview area for uploaded images. Implement image upload to Firebase Storage. Add 'Start Problem' button with proper disabled states. Include mathematical symbol picker using Popover with grid of symbol buttons.",
@@ -346,7 +346,7 @@
         "expansionPrompt": "Break down into: 1) Create tabbed interface structure with shadcn Tabs, 2) Implement text input with validation and character limit, 3) Build image upload with drag-and-drop and preview, 4) Add Firebase Storage integration for uploads, 5) Create mathematical symbol picker component"
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Integrate OpenAI Vision API for image parsing using Server Actions",
         "description": "Implement OCR functionality to extract mathematical problems from uploaded images using GPT-4 Vision with Next.js Server Actions",
         "details": "Create app/actions/parse-image.ts Server Action using 'use server' directive. Handle FormData directly (no multipart parsing needed). Implement OpenAI Vision API integration using gpt-4-vision-preview model. Process uploaded images with medium detail mode for cost optimization. Extract problem text with confidence scoring. Return structured error objects (not throw) for proper client-side handling. Handle various textbook formatting styles. Implement proper error handling for failed parsing. Cache parsed results in Firestore to prevent reprocessing. Use useActionState and useFormStatus hooks on client for state management and loading indicators.",
@@ -410,7 +410,7 @@
         "expansionPrompt": "Break down into: 1) Create API route for image processing with multipart form handling, 2) Implement Vision API integration with proper parameters, 3) Add text extraction and confidence scoring logic, 4) Implement caching in Firestore to prevent reprocessing"
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Add KaTeX for mathematical notation rendering",
         "description": "Integrate KaTeX library to properly render LaTeX mathematical expressions in chat messages",
         "details": "Install katex and @types/katex packages. Create MathDisplay component wrapping KaTeX renderer. Implement inline and display mode rendering detection. Convert plain text math notation (x^2, sqrt(x)) to LaTeX format. Handle special symbols and complex equations. Ensure proper CSS is loaded for KaTeX styling. Create utility function for LaTeX conversion. Integrate with MessageBubble component.",
@@ -465,7 +465,7 @@
         "updatedAt": "2025-11-03T22:07:06.467Z"
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Implement conversation persistence and session management",
         "description": "Store chat sessions in Firestore with proper schema and implement session creation/retrieval logic",
         "details": "Create Firestore schema: users/{userId}/sessions/{sessionId} with problemText, problemType, status, timestamps, and turnCount. Implement turns subcollection for conversation history. Create hooks/useSession.ts for session management. Add session creation on problem start. Store each conversation turn with speaker, message, timestamp. Implement session status updates (in-progress/completed/abandoned). Add automatic session completion after 50 turns. Create session metadata tracking.",
@@ -544,7 +544,7 @@
         "expansionPrompt": "Break down into: 1) Design and implement Firestore schema for sessions, 2) Create session management hooks, 3) Implement turn storage and retrieval logic, 4) Add session status tracking and transitions, 5) Implement automatic session completion logic"
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Build conversation history sidebar with session management",
         "description": "Create collapsible sidebar showing past problem sessions with search, filter, and resume capabilities",
         "details": "Create HistorySidebar component using shadcn Sheet for mobile-responsive drawer. Display session list with Card components showing problem preview, status badges, timestamps. Implement pagination loading 20 sessions at a time. Add search functionality with shadcn Input component. Create filters for in-progress/completed status. Enable click-to-view full conversation history. Implement resume functionality for incomplete sessions. Add 'New Problem' button to start fresh session.",
@@ -613,7 +613,7 @@
         "updatedAt": "2025-11-03T22:13:08.659Z"
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Implement advanced Socratic logic with hints and examples",
         "description": "Add intelligent hint system, stuck detection, and similar example problem generation for blocked students",
         "details": "Implement stuck detection algorithm tracking incorrect responses. Create graduated hint system: conceptual hint after 2 stuck turns, specific approach after 3, concrete direction after 4. Build example solution generator after 5+ stuck turns using GPT-4 to create similar problems with different numbers. Track hint usage in session metadata. Implement problem type detection for tailored questioning (algebra, geometry, word problems). Add response validation to identify misconceptions. Create encouraging feedback messages.",
@@ -623,7 +623,7 @@
           "4",
           "8"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -631,7 +631,7 @@
             "description": "Create a system to track consecutive incorrect responses and identify when a student is stuck on a problem",
             "dependencies": [],
             "details": "Build a response tracker that monitors consecutive incorrect attempts, stores attempt history in session state, implements threshold detection (2+ incorrect = stuck), tracks time between responses to detect frustration patterns, and creates a stuck status enum (not_stuck, potentially_stuck, definitely_stuck). Include pattern analysis for repeated similar errors.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with sequences of correct and incorrect responses, verify stuck detection triggers at correct thresholds, test edge cases with mixed response patterns",
             "parentId": "undefined"
           },
@@ -643,7 +643,7 @@
               1
             ],
             "details": "Implement four hint levels: Level 1 (conceptual hint after 2 stuck turns), Level 2 (specific approach after 3 turns), Level 3 (concrete direction after 4 turns), Level 4 (example problem trigger after 5+ turns). Create hint generation logic using GPT-4 with specific prompts for each level. Store hint history and ensure no duplicate hints are given.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify each hint level triggers at correct stuck count, test hint quality and relevance, ensure hints progress logically from abstract to concrete",
             "parentId": "undefined"
           },
@@ -656,7 +656,7 @@
               2
             ],
             "details": "Implement GPT-4 integration for dynamic problem generation that creates structurally identical problems with different numerical values. Parse original problem to extract structure and problem type. Generate 2-3 similar examples with step-by-step solutions. Ensure generated problems maintain same difficulty level and mathematical concepts. Include solution walkthrough display.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test problem similarity validation, verify numerical differences while maintaining structure, ensure solutions are correct and well-formatted",
             "parentId": "undefined"
           },
@@ -666,7 +666,7 @@
             "description": "Implement system to automatically categorize problems into types for tailored Socratic questioning",
             "dependencies": [],
             "details": "Create problem classifier to detect: algebra (equations, expressions), geometry (shapes, measurements), word problems (real-world scenarios), calculus (derivatives, integrals), statistics (probability, data analysis). Use GPT-4 for initial classification with confidence scoring. Store problem type in session metadata. Create type-specific questioning strategies.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test classification accuracy across diverse problem sets, verify edge cases with mixed problem types, validate type-specific questioning appropriateness",
             "parentId": "undefined"
           },
@@ -678,7 +678,7 @@
               4
             ],
             "details": "Build response analyzer using GPT-4 to identify common misconceptions like order of operations errors, sign errors, conceptual misunderstandings, calculation mistakes, and unit conversion errors. Create misconception database with targeted feedback for each type. Implement pattern matching for frequent error types. Generate specific corrective guidance based on identified misconceptions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test misconception detection accuracy with known error patterns, verify appropriate feedback generation, test edge cases with multiple simultaneous errors",
             "parentId": "undefined"
           },
@@ -691,7 +691,7 @@
               5
             ],
             "details": "Design feedback templates for different scenarios: partial success, complete failure, showing improvement, persistent struggle. Implement tone variation based on stuck level and attempt count. Create praise system for correct steps even in wrong answers. Add motivational messages during extended struggle periods. Include progress acknowledgment phrases and growth mindset reinforcement. Ensure age-appropriate language.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test tone appropriateness across different failure scenarios, verify encouragement increases with struggle level, validate message variety to avoid repetition",
             "parentId": "undefined"
           }
@@ -701,7 +701,7 @@
         "expansionPrompt": "Break down into: 1) Implement stuck detection algorithm, 2) Create graduated hint system with escalation levels, 3) Build example problem generator with GPT-4, 4) Add problem type detection logic, 5) Implement response validation for misconceptions, 6) Create encouraging feedback system"
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Add rate limiting and cost optimization features",
         "description": "Implement API rate limiting, token management, and budget constraints to control costs",
         "details": "Implement rate limiting: 30 requests/minute per user using middleware. Add session turn limit of 50 turns with graceful completion. Compress conversation context keeping only last 10 full turns, summarize older. Implement token counting before API calls with 4000 token maximum. Add daily limit of 20 new problems per user. Cache frequently used responses. Implement image resizing before Vision API calls (max 2048x2048). Add cost tracking per session in Firestore.",
@@ -711,7 +711,7 @@
           "4",
           "8"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -719,7 +719,7 @@
             "description": "Create middleware to enforce 30 requests/minute per user limit with proper queue management",
             "dependencies": [],
             "details": "Build rate limiting middleware using memory-based token bucket algorithm. Track requests per user ID with sliding window approach. Implement queue system for excess requests. Return 429 status with retry-after header when limit exceeded. Store rate limit state in memory with Redis fallback option.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with burst requests to verify 30/min limit. Verify queue behavior under load. Test retry-after header accuracy.",
             "parentId": "undefined"
           },
@@ -729,7 +729,7 @@
             "description": "Implement 50-turn session limit with proper user notification and graceful session closure",
             "dependencies": [],
             "details": "Add turn counter to session state tracking each interaction. Monitor approaching limit at 40, 45 turns with warning messages. Implement graceful completion flow at turn 50 with summary generation. Prevent new turns after limit reached. Update Firestore session status to completed when limit reached.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test turn counting accuracy. Verify warnings appear at correct intervals. Test graceful completion message generation.",
             "parentId": "undefined"
           },
@@ -741,7 +741,7 @@
               2
             ],
             "details": "Implement sliding window for last 10 complete conversation turns. Create summarization logic for older turns using GPT-3.5 for efficiency. Maintain problem context and key learning points in summary. Build compression trigger at 15+ turns. Store compressed version in session metadata while preserving full history in Firestore.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test compression maintains conversation coherence. Verify summary captures key points. Test performance with long conversations.",
             "parentId": "undefined"
           },
@@ -753,7 +753,7 @@
               3
             ],
             "details": "Integrate tiktoken library for accurate GPT token counting. Implement pre-flight token check before API calls. Set 4000 token hard limit with 3800 soft limit for safety margin. Add token usage tracking per session and per turn. Implement message truncation strategy when approaching limits. Create token budget allocation for different message types.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test token counting accuracy against OpenAI's tokenizer. Verify truncation preserves message meaning. Test limit enforcement prevents API errors.",
             "parentId": "undefined"
           },
@@ -765,7 +765,7 @@
               1
             ],
             "details": "Create Firestore collection for daily usage tracking with user ID and date. Implement counter for new problem starts per 24-hour UTC period. Add middleware to check daily limit before problem creation. Create automatic reset job at midnight UTC. Display remaining daily allowance in UI. Implement grace period for in-progress sessions when limit reached.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test daily limit enforcement at boundary. Verify reset occurs at correct time. Test timezone handling for global users.",
             "parentId": "undefined"
           },
@@ -778,7 +778,7 @@
               5
             ],
             "details": "Create cost calculation module with pricing for GPT-4, GPT-3.5, and Vision API calls. Store cost data in sessions collection with per-turn breakdown. Implement real-time cost accumulation during session. Add daily and monthly cost aggregation queries. Create cost dashboard component showing usage trends. Implement budget alerts at configurable thresholds.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify cost calculations match OpenAI pricing. Test aggregation queries accuracy. Test budget alert triggers at correct thresholds.",
             "parentId": "undefined"
           }
@@ -788,7 +788,7 @@
         "expansionPrompt": "Break down into: 1) Implement request rate limiting middleware, 2) Add session turn limits with graceful completion, 3) Create context compression algorithm, 4) Implement token counting and limits, 5) Add daily usage limits per user, 6) Implement cost tracking in Firestore"
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Implement comprehensive error handling and monitoring",
         "description": "Add robust error handling, user-friendly error messages, and system monitoring",
         "details": "Create global error boundary component using React Error Boundary. Implement API error handling with retry logic and exponential backoff. Add user-friendly error messages using shadcn Alert components. Create toast notifications for transient errors using shadcn Toast. Implement connection status monitoring for Firebase. Add loading states for all async operations. Create fallback UI for critical failures. Log errors to console with proper categorization.",
@@ -799,7 +799,7 @@
           "4",
           "8"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -807,7 +807,7 @@
             "description": "Implement a comprehensive Error Boundary component that catches and handles all React component errors gracefully",
             "dependencies": [],
             "details": "Create components/ErrorBoundary.tsx using React's componentDidCatch and getDerivedStateFromError methods. Design fallback UI with shadcn Card and Alert components showing user-friendly error message. Include 'Try Again' button that resets error state. Log errors to console with component stack trace. Style with Tailwind for consistent appearance. Wrap entire app in App.tsx with ErrorBoundary component.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create test component that throws error on button click. Verify error boundary catches and displays fallback UI. Test reset functionality works correctly.",
             "parentId": "undefined"
           },
@@ -817,7 +817,7 @@
             "description": "Build robust API error handling system with automatic retry mechanism using exponential backoff strategy for transient failures",
             "dependencies": [],
             "details": "Create lib/api-error-handler.ts with retry wrapper function supporting configurable max retries (default 3). Implement exponential backoff starting at 1000ms, doubling each retry. Handle different error types: network errors (retry), 4xx errors (no retry), 5xx errors (conditional retry). Create custom error classes for different scenarios. Add request timeout handling with AbortController. Include circuit breaker pattern for repeated failures.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Mock API failures with different status codes. Test retry attempts follow exponential backoff timing. Verify 4xx errors don't retry. Test circuit breaker activates after threshold.",
             "parentId": "undefined"
           },
@@ -830,7 +830,7 @@
               2
             ],
             "details": "Create hooks/useErrorHandler.ts for centralized error message management. Implement error message mapping for common errors (network, auth, validation). Set up shadcn Toast provider in App.tsx for transient notifications. Create ErrorAlert component using shadcn Alert for persistent errors. Add different severity levels (error, warning, info) with appropriate icons. Implement auto-dismiss for non-critical errors after 5 seconds. Create user-friendly message translations for technical errors.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test different error types show appropriate messages. Verify toast notifications appear and auto-dismiss. Test alert components display with correct severity styling.",
             "parentId": "undefined"
           },
@@ -842,7 +842,7 @@
               2
             ],
             "details": "Create components/LoadingSpinner.tsx using shadcn Skeleton for consistent loading states. Implement hooks/useConnectionStatus.ts monitoring Firebase connection using onDisconnect() and .info/connected reference. Add connection status banner showing offline/reconnecting states. Create loading states for session creation, API calls, and image uploads. Implement progressive loading with content placeholders. Add timeout handling for stuck loading states. Create offline mode detection and graceful degradation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test loading states appear during async operations. Simulate offline mode and verify banner appears. Test reconnection handling works properly. Verify loading timeouts trigger appropriately.",
             "parentId": "undefined"
           }
@@ -859,7 +859,10 @@
       "completedCount": 9,
       "tags": [
         "master"
-      ]
+      ],
+      "created": "2025-11-04T03:31:40.310Z",
+      "description": "Tasks for master context",
+      "updated": "2025-11-04T04:18:27.035Z"
     }
   }
 }

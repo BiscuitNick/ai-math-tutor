@@ -8,6 +8,8 @@ export type SessionStatus = "in-progress" | "completed" | "abandoned";
 
 export type Speaker = "user" | "assistant";
 
+export type StuckLevel = "not_stuck" | "potentially_stuck" | "definitely_stuck" | "severely_stuck";
+
 /**
  * Represents a single turn in a conversation
  */
@@ -38,6 +40,10 @@ export interface Session {
     duration?: number; // Total duration in milliseconds
     averageResponseTime?: number; // Average time between turns in milliseconds
     completionRate?: number; // Percentage of problem solved (0-100)
+    stuckLevel?: StuckLevel; // Current stuck detection status
+    consecutiveStuckTurns?: number; // Number of consecutive turns student has been stuck
+    lastHintLevel?: number; // Last hint level provided (0-4)
+    hintCount?: number; // Total number of hints provided this session
   };
 }
 

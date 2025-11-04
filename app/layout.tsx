@@ -5,6 +5,8 @@ import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppHeader } from "@/components/AppHeader";
+import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,10 +39,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <AppHeader />
-            {children}
-          </AuthProvider>
+          <ClientErrorBoundary>
+            <AuthProvider>
+              <AppHeader />
+              {children}
+              <Toaster position="top-right" richColors closeButton />
+            </AuthProvider>
+          </ClientErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

@@ -115,19 +115,21 @@ export default function TestAIChatPage() {
     timestamp: msg.createdAt || new Date(),
   }));
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (data: { text: string; images: File[] }) => {
     console.log("=== handleSendMessage ===");
     console.log("User:", user?.uid);
     console.log("Current Session ID:", currentSessionId);
-    console.log("Message content:", content);
+    console.log("Message text:", data.text);
+    console.log("Images:", data.images.length);
 
+    const messageContent = data.text;
     let sessionIdToUse = currentSessionId;
 
     // Create session if this is the first message
     if (!sessionIdToUse && user) {
       console.log("Creating new session...");
       const session = await createSession({
-        problemText: content.slice(0, 100), // Use first 100 chars as problem summary
+        problemText: messageContent.slice(0, 100), // Use first 100 chars as problem summary
         problemType: "other", // Default problem type
       });
 
@@ -135,7 +137,7 @@ export default function TestAIChatPage() {
         console.log("Session created successfully:", session.id);
         sessionIdToUse = session.id;
         setCurrentSessionId(session.id);
-        setInitialProblem(content.slice(0, 100));
+        setInitialProblem(messageContent.slice(0, 100));
       } else {
         console.error("Failed to create session");
       }
@@ -147,7 +149,7 @@ export default function TestAIChatPage() {
       try {
         const turn = await addTurn(sessionIdToUse, {
           speaker: "user",
-          message: content,
+          message: messageContent,
         });
         if (turn) {
           console.log("Student turn saved:", turn.id);
@@ -165,7 +167,7 @@ export default function TestAIChatPage() {
     console.log("Sending message to AI...");
     await append({
       role: "user",
-      content,
+      content: messageContent,
     });
   };
 

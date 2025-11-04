@@ -209,6 +209,104 @@ export function getUserFriendlyErrorMessage(error: any): string {
 }
 
 /**
+ * Circuit Breaker implementation
+ */
+class CircuitBreaker {
+  private failureCount = 0;
+  private lastFailureTime: number | null = null;
+  private state: 'closed' | 'open' | 'half-open' = 'closed';
+
+  constructor(
+    private threshold: number = 5,
+    private timeout: number = 60000 // 60 seconds
+  ) {}
+
+  recordSuccess(): void {
+    this.failureCount = 0;
+    this.state = 'closed';
+  }
+
+  recordFailure(): void {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+
+    if (this.failureCount >= this.threshold) {
+      this.state = 'open';
+      console.warn(`Circuit breaker opened after ${this.failureCount} failures`);
+    }
+  }
+
+  canAttempt(): boolean {
+    if (this.state === 'closed') {
+      return true;
+    }
+
+    if (this.state === 'open') {
+      // Check if enough time has passed to try half-open
+      if (this.lastFailureTime && Date.now() - this.lastFailureTime >= this.timeout) {
+        this.state = 'half-open';
+        console.log('Circuit breaker entering half-open state');
+        return true;
+      }
+      return false;
+    }
+
+    // half-open state - allow one attempt
+    return true;
+  }
+
+  getState(): string {
+    return this.state;
+  }
+
+  reset(): void {
+    this.failureCount = 0;
+    this.lastFailureTime = null;
+    this.state = 'closed';
+  }
+}
+
+// Global circuit breaker instance
+const circuitBreaker = new CircuitBreaker(5, 60000);
+
+/**
+ * Get circuit breaker instance for testing/monitoring
+ */
+export function getCircuitBreaker(): { state: string; reset: () => void } {
+  return {
+    state: circuitBreaker.getState(),
+    reset: () => circuitBreaker.reset(),
+  };
+}
+
+/**
+ * Retry with circuit breaker protection
+ */
+export async function retryWithCircuitBreaker<T>(
+  fn: () => Promise<T>,
+  options: RetryOptions = {}
+): Promise<T> {
+  // Check circuit breaker
+  if (!circuitBreaker.canAttempt()) {
+    throw new APIError(
+      'Service temporarily unavailable due to repeated failures. Please try again later.',
+      APIErrorType.NETWORK_ERROR,
+      503,
+      false
+    );
+  }
+
+  try {
+    const result = await retryWithBackoff(fn, options);
+    circuitBreaker.recordSuccess();
+    return result;
+  } catch (error) {
+    circuitBreaker.recordFailure();
+    throw error;
+  }
+}
+
+/**
  * Validate OpenAI API key is configured
  * @throws {APIError} if API key is missing or invalid
  */

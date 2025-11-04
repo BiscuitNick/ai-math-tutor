@@ -67,14 +67,14 @@ export function useSessionLifecycle({
     const showWarning = shouldShowTurnWarning(session.turnCount);
     const warningMessage = getTurnWarningMessage(session.turnCount);
     const isAtLimit = hasReachedTurnLimit(session.turnCount);
-    const canResumeSession = canResumeSession(session);
+    const canResume = canResumeSession(session);
     const statusInfo = getSessionStatusInfo(session);
 
     setState({
       showWarning,
       warningMessage,
       isAtLimit,
-      canResume: canResumeSession,
+      canResume,
       statusInfo,
     });
 
