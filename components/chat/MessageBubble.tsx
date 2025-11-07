@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { parseTextForMath } from "@/lib/math-parser";
 import { InlineMath, DisplayMath } from "@/components/MathDisplay";
 import Image from "next/image";
+import type { Session } from "@/lib/types/session";
 
 export interface MessageImage {
   url: string;
@@ -23,12 +24,17 @@ export interface Message {
 export interface MessageBubbleProps {
   message: Message;
   className?: string;
+  currentSession?: Session | null;
 }
 
-export function MessageBubble({ message, className }: MessageBubbleProps) {
+export function MessageBubble({ message, className, currentSession }: MessageBubbleProps) {
   const isStudent = message.role === "student";
   const hasImages = message.images && message.images.length > 0;
   const hasTextContent = message.content.trim();
+  const isTutor = message.role === "tutor";
+
+  // Get steps from session if this is a tutor message
+  const showSteps = isTutor && currentSession && currentSession.steps && currentSession.steps.length > 0;
 
   // Parse message content for math expressions
   const segments = parseTextForMath(message.content);
@@ -96,6 +102,27 @@ export function MessageBubble({ message, className }: MessageBubbleProps) {
               )}
             >
               <CardContent className="p-3">
+                {/* Show problem and steps for tutor messages */}
+                {isTutor && currentSession && (currentSession.problemText || (currentSession.steps && currentSession.steps.length > 0)) && (
+                  <div className="mb-3 pb-3 border-b border-border/50">
+                    <div className="flex flex-col gap-1.5 text-sm">
+                      {/* Always show original problem first */}
+                      {currentSession.problemText && (
+                        <div className="flex items-start gap-2">
+                          <DisplayMath latex={currentSession.problemText} />
+                        </div>
+                      )}
+
+                      {/* Show all steps (which are now filtered to be unique) */}
+                      {currentSession.steps && currentSession.steps.length > 0 && currentSession.steps.map((step, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <DisplayMath latex={step.expression} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Render images inside bubble if there's also text */}
                 {hasImages && (
                   <div className="flex flex-col gap-2 mb-3">

@@ -61,7 +61,7 @@ export function ChatInterface({
   };
   return (
     <div className={cn(
-      "flex flex-col h-full w-full",
+      "fixed flex flex-col h-full w-full",
       className
     )}>
       {/* Header */}
@@ -82,6 +82,7 @@ export function ChatInterface({
                 <MessageBubble
                   key={message.id || index}
                   message={message}
+                  currentSession={currentSession}
                 />
               ))}
 

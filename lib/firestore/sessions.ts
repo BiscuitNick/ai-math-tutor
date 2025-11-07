@@ -33,6 +33,8 @@ import type {
   SessionQueryOptions,
   TurnQueryOptions,
   SessionStatus,
+  MathStep,
+  MathStepDocument,
 } from "@/lib/types/session";
 
 /**
@@ -67,6 +69,11 @@ export function sessionDocToSession(
     lastActivityAt: timestampToDate(doc.lastActivityAt),
     turnCount: doc.turnCount,
     hints: doc.hints,
+    steps: (doc.steps || []).map(step => ({
+      expression: step.expression,
+      timestamp: timestampToDate(step.timestamp),
+      explanation: step.explanation,
+    })),
     completedAt: doc.completedAt ? timestampToDate(doc.completedAt) : undefined,
     metadata: doc.metadata,
   };
@@ -135,6 +142,7 @@ export async function createSession(
     lastActivityAt: now,
     turnCount: 0,
     hints: [],
+    steps: [],
   };
 
   const sessionsRef = getSessionsCollectionRef(userId);
@@ -249,6 +257,36 @@ export async function updateSessionActivity(
   await updateDoc(docRef, {
     lastActivityAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
+  });
+}
+
+/**
+ * Add a step to a session
+ */
+export async function addStepToSession(
+  userId: string,
+  sessionId: string,
+  step: Omit<MathStep, "timestamp">
+): Promise<void> {
+  const docRef = getSessionDocRef(userId, sessionId);
+  const sessionSnap = await getDoc(docRef);
+
+  if (!sessionSnap.exists()) {
+    throw new Error("Session not found");
+  }
+
+  const sessionData = sessionSnap.data() as SessionDocument;
+  const now = Timestamp.now();
+
+  const newStep: MathStepDocument = {
+    expression: step.expression,
+    timestamp: now,
+    explanation: step.explanation,
+  };
+
+  await updateDoc(docRef, {
+    steps: [...(sessionData.steps || []), newStep],
+    updatedAt: now,
   });
 }
 

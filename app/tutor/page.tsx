@@ -19,6 +19,8 @@ import { uploadImage } from "@/lib/storage";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { LoadingSpinner, ChatSkeleton } from "@/components/LoadingSpinner";
+import { extractMathExpressions, isValidMathStep, expressionExists } from "@/lib/utils/mathExtractor";
+import { addStepToSession } from "@/lib/firestore/sessions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -173,7 +175,7 @@ export default function TutorPage() {
 
   // Transform messages to match ChatInterface expectations
   const chatMessages: Message[] = messages.map((msg) => {
-    const baseMessage = {
+    const baseMessage: Message = {
       id: msg.id,
       role: msg.role === "user" ? "student" : "tutor",
       content: msg.content,
@@ -186,7 +188,7 @@ export default function TutorPage() {
       return {
         ...baseMessage,
         images: images,
-      };
+      } as Message;
     }
 
     return baseMessage;
@@ -343,6 +345,39 @@ export default function TutorPage() {
         }
       } catch (err) {
         console.error("Exception while saving image message turn:", err);
+      }
+    }
+
+    // Extract and save mathematical steps from the user's message
+    if (sessionIdToUse && user && contentForAI) {
+      const expressions = extractMathExpressions(contentForAI);
+      console.log("Extracted expressions from user message:", expressions);
+
+      // Get existing expressions to check for duplicates
+      const existingExpressions = [
+        initialProblem || contentForAI.slice(0, 100), // Original problem
+        ...(currentSession?.steps || []).map(s => s.expression), // Existing steps
+      ];
+
+      for (const expr of expressions) {
+        if (isValidMathStep(expr)) {
+          // Check if this expression already exists
+          if (!expressionExists(expr, existingExpressions)) {
+            try {
+              await addStepToSession(user.uid, sessionIdToUse, {
+                expression: expr,
+                explanation: "Student's work",
+              });
+              console.log("Added step to session:", expr);
+              // Add to existing expressions list to prevent duplicates in this batch
+              existingExpressions.push(expr);
+            } catch (err) {
+              console.error("Failed to add step:", err);
+            }
+          } else {
+            console.log("Skipped duplicate expression:", expr);
+          }
+        }
       }
     }
 

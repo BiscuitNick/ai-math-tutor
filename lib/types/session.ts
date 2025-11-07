@@ -22,6 +22,15 @@ export interface Turn {
 }
 
 /**
+ * Represents a single mathematical step in the problem-solving process
+ */
+export interface MathStep {
+  expression: string; // The mathematical expression or equation at this step
+  timestamp: Date; // When this step was recorded
+  explanation?: string; // Optional explanation of what changed
+}
+
+/**
  * Represents a chat session with a student
  */
 export interface Session {
@@ -34,6 +43,7 @@ export interface Session {
   updatedAt: Date;
   turnCount: number;
   hints: string[]; // Array of hint texts provided during the session
+  steps: MathStep[]; // Array of mathematical steps taken in solving the problem
   lastActivityAt: Date; // Used for detecting abandoned sessions
   completedAt?: Date; // When the session was completed/abandoned
   metadata?: {
@@ -48,13 +58,21 @@ export interface Session {
 }
 
 /**
+ * Firestore math step document data
+ */
+export interface MathStepDocument extends Omit<MathStep, "timestamp"> {
+  timestamp: FirebaseFirestore.Timestamp;
+}
+
+/**
  * Firestore document data (without id field, as it's stored as document ID)
  */
-export interface SessionDocument extends Omit<Session, "id" | "createdAt" | "updatedAt" | "lastActivityAt" | "completedAt"> {
+export interface SessionDocument extends Omit<Session, "id" | "createdAt" | "updatedAt" | "lastActivityAt" | "completedAt" | "steps"> {
   createdAt: FirebaseFirestore.Timestamp;
   updatedAt: FirebaseFirestore.Timestamp;
   lastActivityAt: FirebaseFirestore.Timestamp;
   completedAt?: FirebaseFirestore.Timestamp;
+  steps: MathStepDocument[];
 }
 
 /**
