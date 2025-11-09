@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 import { useChat } from "@/hooks/useChat";
 import type { Message } from "@/components/chat/MessageBubble";
@@ -19,7 +19,7 @@ import { uploadImage } from "@/lib/storage";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { LoadingSpinner, ChatSkeleton } from "@/components/LoadingSpinner";
-import { extractMathExpressions, isValidMathStep, expressionExists } from "@/lib/utils/mathExtractor";
+import { isValidMathStep, expressionExists } from "@/lib/utils/mathExtractor";
 import { addStepToSession } from "@/lib/firestore/sessions";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,6 +45,9 @@ export default function TutorPage() {
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [messageImagesMap, setMessageImagesMap] = useState<Map<string, { url: string }[]>>(new Map());
   const errorHandler = useErrorHandler();
+
+  // Use a ref to track session ID for callbacks (state updates are async)
+  const sessionIdRef = useRef<string | null>(null);
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
@@ -74,6 +77,69 @@ export default function TutorPage() {
     onError: (error) => {
       console.error("Chat error:", error);
       errorHandler.showError(error);
+    },
+    onResponse: async (response) => {
+      console.log("[CLIENT] 🔍 onResponse triggered");
+
+      // Extract math expressions from response headers (server-side extraction)
+      const expressionsHeader = response.headers.get('X-Extracted-Expressions');
+      const activeSessionId = sessionIdRef.current; // Use ref instead of state
+      console.log("[CLIENT] Header value:", expressionsHeader);
+      console.log("[CLIENT] Session ID (from ref):", activeSessionId);
+      console.log("[CLIENT] Session ID (from state):", currentSessionId);
+      console.log("[CLIENT] User:", user?.uid);
+
+      if (expressionsHeader && activeSessionId && user) {
+        try {
+          const extractedExpressions = JSON.parse(expressionsHeader);
+          console.log("[CLIENT] ✅ Received extracted expressions:", extractedExpressions);
+          console.log("[CLIENT] Current session steps:", currentSession?.steps);
+          console.log("[CLIENT] Initial problem:", initialProblem);
+
+          // Update initialProblem with the first clean expression (if this is the first message)
+          if (extractedExpressions.length > 0 && !initialProblem) {
+            setInitialProblem(extractedExpressions[0]);
+            console.log("[CLIENT] 📝 Set initial problem to:", extractedExpressions[0]);
+          }
+
+          // Get existing expressions to check for duplicates
+          const existingExpressions = [
+            ...(currentSession?.steps || []).map(s => s.expression),
+          ];
+          console.log("[CLIENT] Existing expressions:", existingExpressions);
+
+          // Save each expression as a step (don't skip any - we want all steps)
+          for (const expr of extractedExpressions) {
+            console.log(`[CLIENT] Processing expression: "${expr}"`);
+            console.log(`[CLIENT] isValidMathStep: ${isValidMathStep(expr)}`);
+            console.log(`[CLIENT] expressionExists: ${expressionExists(expr, existingExpressions)}`);
+
+            if (isValidMathStep(expr)) {
+              if (!expressionExists(expr, existingExpressions)) {
+                try {
+                  console.log(`[CLIENT] 💾 Saving step to Firebase: "${expr}"`);
+                  await addStepToSession(user.uid, activeSessionId, {
+                    expression: expr,
+                    explanation: "Student's work",
+                  });
+                  console.log("[CLIENT] ✅ Step saved successfully:", expr);
+                  existingExpressions.push(expr);
+                } catch (err) {
+                  console.error("[CLIENT] ❌ Failed to add step:", err);
+                }
+              } else {
+                console.log("[CLIENT] ⚠️ Skipped duplicate expression:", expr);
+              }
+            } else {
+              console.log("[CLIENT] ⚠️ Expression failed validation:", expr);
+            }
+          }
+        } catch (err) {
+          console.error("[CLIENT] ❌ Failed to process extracted expressions:", err);
+        }
+      } else {
+        console.log("[CLIENT] ⚠️ Missing required data - expressionsHeader:", !!expressionsHeader, "sessionId:", !!currentSessionId, "user:", !!user);
+      }
     },
     onFinish: async (message) => {
       console.log("=== onFinish callback ===");
@@ -313,18 +379,18 @@ export default function TutorPage() {
       : data.text;          // Otherwise use typed text
 
     // Create session if this is the first message
-    let sessionIdToUse = currentSessionId;
-    if (!sessionIdToUse && user) {
+    // Use first 100 chars as temp problem text (will be updated by server extraction)
+    if (!currentSessionId && user) {
       console.log("Creating new session...");
       const session = await createSession({
-        problemText: contentForAI.slice(0, 100), // Use first 100 chars
+        problemText: contentForAI.slice(0, 100),
         problemType: "other",
       });
 
       if (session) {
         console.log("Session created successfully:", session.id);
-        sessionIdToUse = session.id;
         setCurrentSessionId(session.id);
+        sessionIdRef.current = session.id; // Update ref immediately for callbacks
         setInitialProblem(contentForAI.slice(0, 100));
       } else {
         console.error("Failed to create session");
@@ -333,10 +399,10 @@ export default function TutorPage() {
     }
 
     // Save first message (image + text) as a turn if we have images
-    if (sessionIdToUse && firstMessageId) {
-      console.log("Saving image message turn to session:", sessionIdToUse);
+    if (currentSessionId && firstMessageId) {
+      console.log("Saving image message turn to session:", currentSessionId);
       try {
-        const turn = await addTurn(sessionIdToUse, {
+        const turn = await addTurn(currentSessionId, {
           speaker: "user",
           message: data.text ? data.text : "[Image]",
         });
@@ -348,47 +414,16 @@ export default function TutorPage() {
       }
     }
 
-    // Extract and save mathematical steps from the user's message
-    if (sessionIdToUse && user && contentForAI) {
-      const expressions = extractMathExpressions(contentForAI);
-      console.log("Extracted expressions from user message:", expressions);
-
-      // Get existing expressions to check for duplicates
-      const existingExpressions = [
-        initialProblem || contentForAI.slice(0, 100), // Original problem
-        ...(currentSession?.steps || []).map(s => s.expression), // Existing steps
-      ];
-
-      for (const expr of expressions) {
-        if (isValidMathStep(expr)) {
-          // Check if this expression already exists
-          if (!expressionExists(expr, existingExpressions)) {
-            try {
-              await addStepToSession(user.uid, sessionIdToUse, {
-                expression: expr,
-                explanation: "Student's work",
-              });
-              console.log("Added step to session:", expr);
-              // Add to existing expressions list to prevent duplicates in this batch
-              existingExpressions.push(expr);
-            } catch (err) {
-              console.error("Failed to add step:", err);
-            }
-          } else {
-            console.log("Skipped duplicate expression:", expr);
-          }
-        }
-      }
-    }
-
-    // Send second message (formatted problems or text) to AI via append
+    // Send message to AI
+    // Server will extract expressions and return them in response headers
+    // Client will save them via onResponse callback
     console.log("Sending message to AI...");
     await append({
       role: "user",
       content: contentForAI,
     });
 
-    // Note: The second message will be saved as a turn via onFinish callback
+    // Note: Messages will be saved as turns via onFinish callback
   };
 
   const handleSelectSession = async (session: Session) => {
@@ -397,6 +432,7 @@ export default function TutorPage() {
     setMessages([]);
     setMessageImagesMap(new Map());
     setCurrentSessionId(session.id);
+    sessionIdRef.current = session.id; // Update ref immediately for callbacks
     setInitialProblem(session.problemText);
     setIsResumingSession(true); // Flag to load turns from Firestore
   };
@@ -404,6 +440,7 @@ export default function TutorPage() {
   const handleNewSession = () => {
     console.log("Starting new session");
     setCurrentSessionId(null);
+    sessionIdRef.current = null; // Clear ref
     setInitialProblem("");
     setMessages([]);
     setMessageImagesMap(new Map());

@@ -18,7 +18,11 @@ export function extractMathExpressions(text: string): string[] {
   while ((match = latexRegex.exec(text)) !== null) {
     const expr = match[1].trim();
     if (expr) {
-      expressions.push(expr);
+      // Clean conversational text before adding
+      const cleaned = cleanConversationalText(expr);
+      if (cleaned) {
+        expressions.push(cleaned);
+      }
     }
   }
 
@@ -30,7 +34,11 @@ export function extractMathExpressions(text: string): string[] {
       const expr = match[0].trim();
       // Filter out non-mathematical sentences
       if (containsMathematicalContent(expr)) {
-        expressions.push(expr);
+        // Clean conversational text before adding
+        const cleaned = cleanConversationalText(expr);
+        if (cleaned) {
+          expressions.push(cleaned);
+        }
       }
     }
   }
@@ -55,6 +63,58 @@ function containsMathematicalContent(text: string): boolean {
 }
 
 /**
+ * Remove conversational fillers and question phrases from mathematical expressions
+ * Examples: "3 + 4 right?" -> "3 + 4", "I think x = 5" -> "x = 5", "5x + 6 = 11 help me solve this" -> "5x + 6 = 11"
+ */
+function cleanConversationalText(expr: string): string {
+  // First, remove everything after common conversational trigger phrases
+  // This handles cases like "5x + 6 = 11 help me solve this"
+  const conversationalTriggers = [
+    /\s+help\s+me.*/i,           // "help me solve this", "help me", etc.
+    /\s+can\s+you\s+help.*/i,    // "can you help"
+    /\s+please\s+help.*/i,       // "please help"
+    /\s+how\s+do\s+I.*/i,        // "how do I solve this"
+    /\s+solve\s+this.*/i,        // "solve this"
+    /\s+what\s+is.*/i,           // "what is the answer"
+    /\s+show\s+me.*/i,           // "show me how"
+  ];
+
+  let cleaned = expr;
+  for (const trigger of conversationalTriggers) {
+    cleaned = cleaned.replace(trigger, '');
+  }
+
+  // Then remove common conversational patterns at start/end
+  const conversationalPatterns = [
+    /\s*right\??$/i,        // "right?" at end
+    /\s*correct\??$/i,      // "correct?" at end
+    /^I think\s*/i,         // "I think" at start
+    /^maybe\s*/i,           // "maybe" at start
+    /^is this\s*/i,         // "is this" at start
+    /^could it be\s*/i,     // "could it be" at start
+    /\s*I guess\s*/i,       // "I guess" anywhere
+    /^so\s*/i,              // "so" at start
+    /^and\s*/i,             // "and" at start
+    /^then\s*/i,            // "then" at start
+    /\s*\?+\s*$/,           // Question marks at end
+  ];
+
+  for (const pattern of conversationalPatterns) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+
+  return cleaned.trim();
+}
+
+/**
+ * Check if text contains conversational language that shouldn't be in a math expression
+ */
+function containsConversationalText(text: string): boolean {
+  const conversationalWords = /\b(right|correct|think|maybe|guess|perhaps|possibly|probably|help|solve|show|please|what|how)\b/i;
+  return conversationalWords.test(text);
+}
+
+/**
  * Normalize a mathematical expression for comparison
  * Removes extra whitespace, LaTeX delimiters, and standardizes formatting
  */
@@ -74,6 +134,11 @@ export function isValidMathStep(expr: string): boolean {
 
   // Must contain some mathematical content
   if (!containsMathematicalContent(normalized)) {
+    return false;
+  }
+
+  // Should not contain conversational text
+  if (containsConversationalText(normalized)) {
     return false;
   }
 

@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, CoreMessage } from "ai";
+import { streamText, CoreMessage, generateText } from "ai";
 import { NextRequest, NextResponse } from "next/server";
 import { SOCRATIC_SYSTEM_PROMPT } from "@/lib/prompts/socratic-tutor";
 import { manageConversationContext, countTotalTokens } from "@/lib/token-counter";
@@ -13,6 +13,7 @@ import { compressConversationContext, shouldCompressContext, getCompressionStats
 import { checkTokenLimit, formatTokenBudget, createTokenLimitError, truncateToTokenBudget } from "@/lib/token-limits";
 import { checkDailyLimit, recordProblemStarted, isNewProblem, formatDailyUsage, formatDailyLimitHeaders, createDailyLimitError } from "@/lib/daily-limits";
 import { createCostRecord, formatCost, checkBudgetThreshold } from "@/lib/cost-tracking";
+import { isValidMathStep, expressionExists } from "@/lib/utils/mathExtractor";
 
 export const runtime = "edge";
 
@@ -24,12 +25,57 @@ const MAX_RESPONSE_TOKENS = 1000;
 // TypeScript interfaces for API
 interface ChatRequest {
   messages: CoreMessage[];
+  sessionId?: string;
+  userId?: string;
+}
+
+/**
+ * Extract mathematical expressions from text (server-side)
+ */
+async function extractMathExpressionsServerSide(text: string): Promise<string[]> {
+  try {
+    if (!text || typeof text !== "string" || text.trim().length === 0) {
+      return [];
+    }
+
+    const prompt = `Extract ONLY the pure mathematical expression(s) from this student's message. Remove all conversational text.
+
+Student message: "${text}"
+
+Return ONLY a JSON array of expressions, nothing else:
+["expression1", "expression2"]
+
+Examples:
+Input: "5x + 6 = 11 help me"
+Output: ["5x + 6 = 11"]
+
+Input: "∞+1=∞+1 right?"
+Output: ["∞+1=∞+1"]`;
+
+    const { text: responseText } = await generateText({
+      model: openai("gpt-4o-mini"),
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0,
+    });
+
+    // Parse JSON response
+    let cleanedText = responseText.trim();
+    if (cleanedText.startsWith("```")) {
+      cleanedText = cleanedText.replace(/^```(?:json)?\s*\n/, "").replace(/\n```\s*$/, "");
+    }
+
+    const parsed = JSON.parse(cleanedText);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Server-side extraction failed:", error);
+    return [];
+  }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as ChatRequest;
-    const { messages } = body;
+    const { messages, sessionId } = body;
 
     // Validate request
     if (!messages || !Array.isArray(messages)) {
@@ -118,9 +164,20 @@ export async function POST(req: NextRequest) {
     // Validate OpenAI API key
     validateOpenAIKey();
 
-    // Extract problem text from first user message
-    const firstUserMessage = messages.find(m => m.role === "user");
-    const problemText = firstUserMessage?.content?.toString() || "the problem";
+    // Extract problem text from last user message
+    const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
+    const problemText = lastUserMessage?.content?.toString() || "the problem";
+
+    // Extract clean math expressions from the user's message (server-side)
+    // This reduces client-side LLM calls and improves performance
+    let extractedExpressions: string[] = [];
+    try {
+      console.log("[SERVER] Extracting from user message:", problemText);
+      extractedExpressions = await extractMathExpressionsServerSide(problemText);
+      console.log("[SERVER] ✅ Extracted expressions:", extractedExpressions);
+    } catch (error) {
+      console.error("[SERVER] ❌ Failed to extract expressions:", error);
+    }
 
     // Detect problem type for tailored guidance
     let problemTypeInfo = null;
@@ -337,6 +394,16 @@ Remember: NEVER solve the problem directly, even at higher hint levels.`;
 
       // Add cost tracking header
       response.headers.set('X-Request-Cost', formatCost(costRecord.cost));
+
+      // Add extracted expressions to response headers
+      // Client will use these to save steps to Firebase
+      if (extractedExpressions.length > 0) {
+        const headerValue = JSON.stringify(extractedExpressions);
+        response.headers.set('X-Extracted-Expressions', headerValue);
+        console.log('[SERVER] ✅ Added extracted expressions to response headers:', headerValue);
+      } else {
+        console.log('[SERVER] ⚠️ No expressions to add to headers');
+      }
 
       return response;
     } catch (streamError: any) {

@@ -8,6 +8,7 @@ export interface UseChatOptions {
   streamProtocol?: 'text' | 'data';
   onError?: (error: Error) => void;
   onFinish?: (message: any) => void;
+  onResponse?: (response: Response) => void | Promise<void>;
 }
 
 export interface ChatMessage {
@@ -32,6 +33,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     streamProtocol = 'data',
     onError,
     onFinish,
+    onResponse,
   } = options;
 
   const chat = useVercelChat({
@@ -45,6 +47,9 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       console.log("Chat finished:", message);
       onFinish?.(message);
     },
+    onResponse: onResponse ? async (response) => {
+      await onResponse(response);
+    } : undefined,
   });
 
   // Transform messages to match our interface
