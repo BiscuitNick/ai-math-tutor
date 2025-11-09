@@ -31,19 +31,6 @@ export function MessageBubble({ message, className, currentSession }: MessageBub
   const isStudent = message.role === "student";
   const hasImages = message.images && message.images.length > 0;
   const hasTextContent = message.content.trim();
-  const isTutor = message.role === "tutor";
-
-  // Get steps from session if this is a tutor message
-  const showSteps = isTutor && currentSession && currentSession.steps && currentSession.steps.length > 0;
-
-  // Debug logging for tutor messages
-  if (isTutor && currentSession) {
-    console.log("[RENDER] Tutor message rendering:");
-    console.log("[RENDER] - problemText:", currentSession.problemText);
-    console.log("[RENDER] - steps:", currentSession.steps);
-    console.log("[RENDER] - Will show problemText?", currentSession.problemText && (!currentSession.steps || currentSession.steps.length === 0));
-    console.log("[RENDER] - Will show steps?", currentSession.steps && currentSession.steps.length > 0);
-  }
 
   // Parse message content for math expressions
   const segments = parseTextForMath(message.content);
@@ -111,27 +98,6 @@ export function MessageBubble({ message, className, currentSession }: MessageBub
               )}
             >
               <CardContent className="p-3">
-                {/* Show problem and steps for tutor messages */}
-                {isTutor && currentSession && (currentSession.problemText || (currentSession.steps && currentSession.steps.length > 0)) && (
-                  <div className="mb-3 pb-3 border-b border-border/50">
-                    <div className="flex flex-col gap-1.5 text-sm">
-                      {/* Show original problem only if we don't have steps (steps are cleaner) */}
-                      {currentSession.problemText && (!currentSession.steps || currentSession.steps.length === 0) && (
-                        <div className="flex items-start gap-2">
-                          <DisplayMath latex={currentSession.problemText} />
-                        </div>
-                      )}
-
-                      {/* Show all steps (which are the clean extracted expressions) */}
-                      {currentSession.steps && currentSession.steps.length > 0 && currentSession.steps.map((step, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <DisplayMath latex={step.expression} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Render images inside bubble if there's also text */}
                 {hasImages && (
                   <div className="flex flex-col gap-2 mb-3">
