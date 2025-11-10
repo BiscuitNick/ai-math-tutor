@@ -20,7 +20,8 @@ import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { LoadingSpinner, ChatSkeleton } from "@/components/LoadingSpinner";
 import { isValidMathStep, expressionExists } from "@/lib/utils/mathExtractor";
-import { addStepToSession } from "@/lib/firestore/sessions";
+import { addStepToSession, getSessionDocRef } from "@/lib/firestore/sessions";
+import { updateDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,8 +36,7 @@ import { LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePractice } from "@/hooks/usePractice";
-import { CompletionCelebration } from "@/components/practice/CompletionCelebration";
-import { PracticeOfferButtons } from "@/components/practice/PracticeOfferButtons";
+import { PracticeModal } from "@/components/practice/PracticeModal";
 import { SessionHistoryDropdown } from "@/components/practice/SessionHistoryDropdown";
 import { toast } from "sonner";
 
@@ -119,8 +119,22 @@ export default function TutorPage() {
 
           // Update initialProblem with the first clean expression (if this is the first message)
           if (extractedExpressions.length > 0 && !initialProblem) {
-            setInitialProblem(extractedExpressions[0]);
-            console.log("[CLIENT] 📝 Set initial problem to:", extractedExpressions[0]);
+            const cleanFormula = extractedExpressions[0];
+            setInitialProblem(cleanFormula);
+            console.log("[CLIENT] 📝 Set initial problem to:", cleanFormula);
+
+            // Update session's problemText in Firestore
+            if (user && activeSessionId) {
+              try {
+                const sessionDocRef = getSessionDocRef(user.uid, activeSessionId);
+                await updateDoc(sessionDocRef, {
+                  problemText: cleanFormula,
+                });
+                console.log("[CLIENT] ✅ Updated session problemText in Firestore");
+              } catch (err) {
+                console.error("[CLIENT] ❌ Failed to update session problemText:", err);
+              }
+            }
           }
 
           // Get existing expressions to check for duplicates
@@ -400,11 +414,11 @@ export default function TutorPage() {
       : data.text;          // Otherwise use typed text
 
     // Create session if this is the first message
-    // Use first 100 chars as temp problem text (will be updated by server extraction)
+    // Use empty string initially - will be populated after server extraction
     if (!currentSessionId && user) {
       console.log("Creating new session...");
       const session = await createSession({
-        problemText: contentForAI.slice(0, 100),
+        problemText: "",
         problemType: "other",
       });
 
@@ -652,23 +666,20 @@ export default function TutorPage() {
         </div>
       )}
 
-      {/* Completion Celebration */}
-      {completionStatus && completionStatus.isComplete && (
-        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md px-4">
-          <CompletionCelebration confidence={completionStatus.confidence} />
-        </div>
-      )}
-
-      {/* Practice Offer */}
-      {showPracticeOffer && (
-        <div className="absolute top-40 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md px-4">
-          <PracticeOfferButtons
-            onSelectDifficulty={handlePracticeOffer}
-            onDecline={handleDeclinePractice}
-            isLoading={isGenerating}
-          />
-        </div>
-      )}
+      {/* Practice Modal */}
+      <PracticeModal
+        open={(completionStatus?.isComplete && !showPracticeOffer) || showPracticeOffer}
+        onOpenChange={(open) => {
+          if (!open && completionStatus?.isComplete) {
+            setShowPracticeOffer(true);
+          }
+        }}
+        confidence={completionStatus?.confidence || 0}
+        showPracticeOffer={showPracticeOffer}
+        onSelectDifficulty={handlePracticeOffer}
+        onDecline={handleDeclinePractice}
+        isGenerating={isGenerating}
+      />
 
       {/* Chat Interface - Full Height */}
       <ChatInterface

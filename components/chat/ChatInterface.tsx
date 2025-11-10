@@ -100,14 +100,14 @@ export function ChatInterface({
                   <div className="p-4 flex flex-col gap-2">
                     {/* Show original problem only if we don't have steps */}
                     {hasProblemText && !hasProblems && (
-                      <div className="flex items-start gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         <DisplayMath latex={currentSession.problemText} />
                       </div>
                     )}
 
                     {/* Show all steps (clean extracted expressions) */}
                     {hasProblems && currentSession.steps.map((step: any, index: number) => (
-                      <div key={index} className="flex items-start gap-2">
+                      <div key={index} className="flex items-center justify-center gap-2">
                         <DisplayMath latex={step.expression} />
                       </div>
                     ))}

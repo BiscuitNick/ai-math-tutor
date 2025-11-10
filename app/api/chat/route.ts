@@ -278,7 +278,7 @@ Use these as guidance for your questioning strategy.`;
     }
 
     // Add completion detection guidance if student appears to have solved it
-    if (completionResult && completionResult.isComplete && completionResult.confidence >= 0.75) {
+    if (completionResult && completionResult.isComplete && completionResult.confidence >= 0.7) {
       const completionGuidance = `
 
 ## COMPLETION DETECTED:
