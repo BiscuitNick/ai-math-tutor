@@ -95,7 +95,7 @@ export function ChatInterface({
               <div className="flex-shrink-0 border-b px-4 py-2 bg-muted/30">
                 <h2 className="text-sm font-semibold">Running Problem</h2>
               </div>
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 overflow-y-auto">
                 {hasProblems || hasProblemText ? (
                   <div className="p-4 flex flex-col gap-2">
                     {/* Show original problem only if we don't have steps */}
@@ -152,7 +152,7 @@ export function ChatInterface({
                     </Empty>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-4 p-4">
+                  <div className="flex flex-col gap-2 p-4">
                     {messages.map((message, index) => (
                       <MessageBubble
                         key={message.id || index}

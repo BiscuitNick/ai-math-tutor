@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Sparkles, Target, TrendingUp } from "lucide-react";
+import { CheckCircle2, Sparkles, Target, TrendingUp, Plus } from "lucide-react";
 
 export interface PracticeModalProps {
   open: boolean;
@@ -19,6 +19,7 @@ export interface PracticeModalProps {
   showPracticeOffer: boolean;
   onSelectDifficulty: (difficulty: "same" | "harder") => void;
   onDecline: () => void;
+  onNewChat: () => void;
   isGenerating?: boolean;
 }
 
@@ -29,6 +30,7 @@ export function PracticeModal({
   showPracticeOffer,
   onSelectDifficulty,
   onDecline,
+  onNewChat,
   isGenerating = false,
 }: PracticeModalProps) {
   const confidencePercent = Math.round(confidence * 100);
@@ -40,6 +42,11 @@ export function PracticeModal({
 
   const handleDecline = () => {
     onDecline();
+    onOpenChange(false);
+  };
+
+  const handleNewChat = () => {
+    onNewChat();
     onOpenChange(false);
   };
 
@@ -57,38 +64,39 @@ export function PracticeModal({
             </div>
           </div>
 
-          <AlertDialogDescription className="space-y-3">
-            <div>
-              It looks like you solved the problem correctly!
-              {confidencePercent >= 90 && " I'm very confident you got it right."}
-              {confidencePercent >= 75 && confidencePercent < 90 && " Your work looks solid."}
-            </div>
-
-            {/* Confidence meter */}
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">Confidence:</span>
-              <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-green-500 transition-all duration-500"
-                  style={{ width: `${confidencePercent}%` }}
-                />
-              </div>
-              <span className="font-medium text-green-600">{confidencePercent}%</span>
-            </div>
-
-            {showPracticeOffer && (
-              <>
-                <div className="flex items-center gap-2 pt-3 border-t">
-                  <Target className="h-4 w-4 text-primary" />
-                  <span className="font-semibold">Ready for practice?</span>
-                </div>
-                <div>
-                  Would you like to try a practice problem to reinforce what you learned?
-                </div>
-              </>
-            )}
+          <AlertDialogDescription>
+            It looks like you solved the problem correctly!
+            {confidencePercent >= 90 && " I'm very confident you got it right."}
+            {confidencePercent >= 75 && confidencePercent < 90 && " Your work looks solid."}
           </AlertDialogDescription>
         </AlertDialogHeader>
+
+        {/* Content outside of AlertDialogDescription to avoid nesting issues */}
+        <div className="space-y-3">
+          {/* Confidence meter */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Confidence:</span>
+            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 transition-all duration-500"
+                style={{ width: `${confidencePercent}%` }}
+              />
+            </div>
+            <span className="font-medium text-green-600">{confidencePercent}%</span>
+          </div>
+
+          {showPracticeOffer && (
+            <>
+              <div className="flex items-center gap-2 pt-3 border-t">
+                <Target className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-sm">Ready for practice?</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Would you like to try a practice problem to reinforce what you learned?
+              </p>
+            </>
+          )}
+        </div>
 
         {showPracticeOffer && (
           <AlertDialogFooter className="flex-col sm:flex-col gap-2">
@@ -123,11 +131,34 @@ export function PracticeModal({
               No Thanks
             </Button>
 
+            <Button
+              onClick={handleNewChat}
+              disabled={isGenerating}
+              variant="ghost"
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Chat
+            </Button>
+
             {isGenerating && (
               <div className="text-xs text-muted-foreground text-center">
                 Generating practice problem...
               </div>
             )}
+          </AlertDialogFooter>
+        )}
+
+        {/* When not showing practice offer, show confirmation buttons */}
+        {!showPracticeOffer && (
+          <AlertDialogFooter>
+            <Button
+              onClick={() => onOpenChange(false)}
+              variant="default"
+              className="w-full"
+            >
+              Continue
+            </Button>
           </AlertDialogFooter>
         )}
       </AlertDialogContent>

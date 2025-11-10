@@ -75,15 +75,6 @@ export function MessageBubble({ message, className, currentSession }: MessageBub
                   </div>
                 ))}
               </div>
-              {/* Timestamp below images */}
-              <div
-                className={cn(
-                  "text-xs opacity-70",
-                  isStudent ? "text-right text-muted-foreground" : "text-left text-muted-foreground"
-                )}
-              >
-                {formatDistanceToNow(message.timestamp, { addSuffix: true })}
-              </div>
             </>
           )}
 
@@ -117,7 +108,7 @@ export function MessageBubble({ message, className, currentSession }: MessageBub
                 )}
 
                 {/* Render text content */}
-                <div className="whitespace-pre-wrap break-words">
+                <div className="whitespace-pre-wrap break-words leading-snug">
                   {segments.map((segment, index) => {
                     if (segment.type === "inline-math") {
                       return <InlineMath key={index} latex={segment.content} />;
@@ -127,14 +118,6 @@ export function MessageBubble({ message, className, currentSession }: MessageBub
                       return <React.Fragment key={index}>{segment.content}</React.Fragment>;
                     }
                   })}
-                </div>
-                <div
-                  className={cn(
-                    "text-xs mt-1 opacity-70",
-                    isStudent ? "text-right text-blue-100" : "text-left text-muted-foreground"
-                  )}
-                >
-                  {formatDistanceToNow(message.timestamp, { addSuffix: true })}
                 </div>
               </CardContent>
             </Card>

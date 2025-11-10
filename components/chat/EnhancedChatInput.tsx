@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Send, Image as ImageIcon, X, Loader2, CheckCircle } from "lucide-react";
+import { Send, Image as ImageIcon, X, Loader2, CheckCircle, Upload } from "lucide-react";
 import { MathSymbolPicker } from "@/components/MathSymbolPicker";
 import Image from "next/image";
 
@@ -13,7 +13,6 @@ export interface EnhancedChatInputProps {
   isLoading?: boolean;
   placeholder?: string;
   maxLength?: number;
-  maxImages?: number;
   className?: string;
   currentSessionId?: string | null;
   currentSession?: any;
@@ -23,19 +22,20 @@ export interface EnhancedChatInputProps {
 export function EnhancedChatInput({
   onSend,
   isLoading = false,
-  placeholder = "Type your response or paste/upload images...",
+  placeholder = "Type your response or drag/paste an image...",
   maxLength = 1000,
-  maxImages = 5,
   className,
   currentSessionId,
   currentSession,
   onCompleteSession
 }: EnhancedChatInputProps) {
   const [message, setMessage] = useState("");
-  const [images, setImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -47,26 +47,32 @@ export function EnhancedChatInput({
     }
   }, [message]);
 
-  // Generate image previews
+  // Generate image preview
   useEffect(() => {
-    const previews = images.map(file => URL.createObjectURL(file));
-    setImagePreviews(previews);
-
-    return () => {
-      previews.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [images]);
+    if (image) {
+      const preview = URL.createObjectURL(image);
+      setImagePreview(preview);
+      return () => {
+        URL.revokeObjectURL(preview);
+      };
+    } else {
+      setImagePreview(null);
+    }
+  }, [image]);
 
   const handleSend = async () => {
     const trimmedMessage = message.trim();
-    if ((!trimmedMessage && images.length === 0) || isLoading) return;
+    if ((!trimmedMessage && !image) || isLoading) return;
 
-    await onSend({ text: trimmedMessage, images });
+    await onSend({
+      text: trimmedMessage,
+      images: image ? [image] : []
+    });
 
     // Clear everything
     setMessage("");
-    setImages([]);
-    setImagePreviews([]);
+    setImage(null);
+    setImagePreview(null);
     textareaRef.current?.focus();
   };
 
@@ -82,41 +88,74 @@ export function EnhancedChatInput({
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    const imageFiles: File[] = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (item.type.startsWith("image/")) {
+        e.preventDefault();
         const file = item.getAsFile();
         if (file) {
-          imageFiles.push(file);
+          setImage(file);
         }
+        break;
       }
-    }
-
-    if (imageFiles.length > 0) {
-      e.preventDefault();
-      addImages(imageFiles);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    addImages(files);
+    const file = e.target.files?.[0];
+    if (file) {
+      setImage(file);
+    }
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  const addImages = (newFiles: File[]) => {
-    const remainingSlots = maxImages - images.length;
-    const filesToAdd = newFiles.slice(0, remainingSlots);
-
-    setImages(prev => [...prev, ...filesToAdd]);
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview(null);
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.items && e.dataTransfer.items[0]?.type.startsWith("image/")) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Check if we're leaving the drop zone entirely
+    const rect = dropZoneRef.current?.getBoundingClientRect();
+    if (rect) {
+      const x = e.clientX;
+      const y = e.clientY;
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        setIsDragging(false);
+      }
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    const imageFile = Array.from(files).find(file => file.type.startsWith("image/"));
+    if (imageFile) {
+      setImage(imageFile);
+    }
   };
 
   const handleSymbolSelect = (symbol: string) => {
@@ -138,42 +177,51 @@ export function EnhancedChatInput({
     }
   };
 
-  const isDisabled = isLoading || (!message.trim() && images.length === 0);
+  const isDisabled = isLoading || (!message.trim() && !image);
   const remainingChars = maxLength - message.length;
   const isNearLimit = remainingChars <= 50;
   const isOverLimit = remainingChars < 0;
-  const canAddMoreImages = images.length < maxImages;
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
-      {/* Image Previews */}
-      {images.length > 0 && (
-        <div className="flex gap-2 flex-wrap p-2 bg-muted rounded-lg">
-          {imagePreviews.map((preview, index) => (
-            <div key={index} className="relative group">
-              <Image
-                src={preview}
-                alt={`Upload ${index + 1}`}
-                width={80}
-                height={80}
-                className="rounded border object-cover w-20 h-20"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => removeImage(index)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          ))}
-          {images.length < maxImages && (
-            <div className="flex items-center text-xs text-muted-foreground">
-              {maxImages - images.length} more
-            </div>
-          )}
+    <div
+      ref={dropZoneRef}
+      className={cn("flex flex-col gap-2 relative", className)}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Centered Image Preview */}
+      {imagePreview && (
+        <div className="flex justify-center p-4">
+          <div className="relative group">
+            <Image
+              src={imagePreview}
+              alt="Upload preview"
+              width={200}
+              height={200}
+              className="rounded-lg border-2 border-border object-cover max-h-[200px] w-auto"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+              onClick={removeImage}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Drag Overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg border-2 border-dashed border-primary">
+          <div className="flex flex-col items-center gap-2 text-primary">
+            <Upload className="h-8 w-8" />
+            <span className="text-sm font-medium">Drop image here</span>
+          </div>
         </div>
       )}
 
@@ -189,7 +237,8 @@ export function EnhancedChatInput({
           disabled={isLoading}
           className={cn(
             "min-h-[48px] resize-none pr-12",
-            isOverLimit && "border-destructive focus-visible:ring-destructive"
+            isOverLimit && "border-destructive focus-visible:ring-destructive",
+            isDragging && "opacity-50"
           )}
           maxLength={maxLength}
         />
@@ -209,25 +258,24 @@ export function EnhancedChatInput({
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between relative">
         <div className="flex items-center gap-2">
           {/* Image Upload Button */}
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
-            disabled={!canAddMoreImages || isLoading}
+            disabled={isLoading}
             className="h-8"
           >
             <ImageIcon className="h-4 w-4 mr-1" />
-            Image ({images.length}/{maxImages})
+            {image ? "Replace" : "Add Image"}
           </Button>
           <input
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
-            multiple
             className="hidden"
             onChange={handleFileSelect}
           />
@@ -237,9 +285,11 @@ export function EnhancedChatInput({
             onSymbolSelect={handleSymbolSelect}
             disabled={isLoading}
           />
+        </div>
 
-          {/* Mark Complete Button */}
-          {currentSessionId && currentSession?.status === "in-progress" && onCompleteSession && (
+        {/* Mark Complete Button - Centered */}
+        {currentSessionId && currentSession?.status === "in-progress" && onCompleteSession && (
+          <div className="absolute left-1/2 transform -translate-x-1/2">
             <Button
               type="button"
               variant="outline"
@@ -250,8 +300,8 @@ export function EnhancedChatInput({
               <CheckCircle className="h-4 w-4 mr-1" />
               Mark Complete
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="flex items-center gap-4 text-xs">
           <div className="text-muted-foreground hidden sm:block">

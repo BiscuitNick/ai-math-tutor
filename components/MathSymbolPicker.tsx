@@ -11,7 +11,7 @@ import { Omega } from "lucide-react";
 interface MathSymbol {
   symbol: string;
   name: string;
-  category: "operators" | "greek" | "relations" | "misc";
+  category: "operators" | "relations" | "misc";
 }
 
 const MATH_SYMBOLS: MathSymbol[] = [
@@ -24,20 +24,6 @@ const MATH_SYMBOLS: MathSymbol[] = [
   { symbol: "∑", name: "Summation", category: "operators" },
   { symbol: "∫", name: "Integral", category: "operators" },
   { symbol: "∂", name: "Partial derivative", category: "operators" },
-
-  // Greek letters
-  { symbol: "π", name: "Pi", category: "greek" },
-  { symbol: "θ", name: "Theta", category: "greek" },
-  { symbol: "α", name: "Alpha", category: "greek" },
-  { symbol: "β", name: "Beta", category: "greek" },
-  { symbol: "γ", name: "Gamma", category: "greek" },
-  { symbol: "δ", name: "Delta", category: "greek" },
-  { symbol: "λ", name: "Lambda", category: "greek" },
-  { symbol: "μ", name: "Mu", category: "greek" },
-  { symbol: "σ", name: "Sigma", category: "greek" },
-  { symbol: "Σ", name: "Capital Sigma", category: "greek" },
-  { symbol: "Δ", name: "Capital Delta", category: "greek" },
-  { symbol: "Ω", name: "Omega", category: "greek" },
 
   // Relations
   { symbol: "≤", name: "Less than or equal", category: "relations" },
@@ -68,7 +54,6 @@ interface MathSymbolPickerProps {
 export function MathSymbolPicker({ onSymbolSelect, disabled = false }: MathSymbolPickerProps) {
   const categories = [
     { id: "operators", label: "Operators" },
-    { id: "greek", label: "Greek Letters" },
     { id: "relations", label: "Relations" },
     { id: "misc", label: "Miscellaneous" },
   ];

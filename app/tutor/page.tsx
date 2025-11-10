@@ -32,7 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePractice } from "@/hooks/usePractice";
@@ -678,8 +678,23 @@ export default function TutorPage() {
         showPracticeOffer={showPracticeOffer}
         onSelectDifficulty={handlePracticeOffer}
         onDecline={handleDeclinePractice}
+        onNewChat={handleNewSession}
         isGenerating={isGenerating}
       />
+
+      {/* Persistent New Chat Button - Bottom Right */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={handleNewSession}
+          size="lg"
+          className="rounded-full shadow-lg h-12 w-12 p-0"
+          variant="default"
+          title="Start New Chat"
+        >
+          <Plus className="h-6 w-6" />
+          <span className="sr-only">New Chat</span>
+        </Button>
+      </div>
 
       {/* Chat Interface - Full Height */}
       <ChatInterface
