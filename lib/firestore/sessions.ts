@@ -527,3 +527,78 @@ export async function markSessionsAsAbandoned(
 
   await batch.commit();
 }
+
+/**
+ * Get session history (completed and abandoned sessions)
+ */
+export async function getSessionHistory(
+  userId: string,
+  limitCount: number = 20
+): Promise<Session[]> {
+  // Query for both completed and abandoned sessions
+  const sessionsRef = getSessionsCollectionRef(userId);
+  const q = query(
+    sessionsRef,
+    where("status", "in", ["completed", "abandoned"]),
+    orderBy("completedAt", "desc"),
+    limit(limitCount)
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) =>
+    sessionDocToSession(doc.id, doc.data() as SessionDocument)
+  );
+}
+
+/**
+ * Get completed sessions only
+ */
+export async function getCompletedSessions(
+  userId: string,
+  limitCount: number = 20
+): Promise<Session[]> {
+  return querySessions(userId, {
+    status: "completed",
+    orderBy: "completedAt",
+    orderDirection: "desc",
+    limit: limitCount,
+  });
+}
+
+/**
+ * Create a new practice session linked to a parent session
+ */
+export async function createPracticeSession(
+  userId: string,
+  data: CreateSessionData & { parentSessionId: string }
+): Promise<Session> {
+  const now = Timestamp.now();
+
+  const sessionData: Omit<SessionDocument, "userId"> = {
+    problemText: data.problemText,
+    problemType: data.problemType,
+    status: "in-progress",
+    createdAt: now,
+    updatedAt: now,
+    lastActivityAt: now,
+    turnCount: 0,
+    hints: [],
+    steps: [],
+    metadata: {
+      isPracticeMode: true,
+      parentSessionId: data.parentSessionId,
+    },
+  };
+
+  const sessionsRef = getSessionsCollectionRef(userId);
+  const docRef = await addDoc(sessionsRef, {
+    ...sessionData,
+    userId,
+  });
+
+  return sessionDocToSession(docRef.id, {
+    ...sessionData,
+    userId,
+  });
+}

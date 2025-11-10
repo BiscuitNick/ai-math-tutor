@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ChatInterface } from "@/components/chat/ChatInterface";
-import { useChat } from "@/hooks/useChat";
+import { useChat, type CompletionStatus } from "@/hooks/useChat";
 import type { Message } from "@/components/chat/MessageBubble";
 import { HistorySidebar } from "@/components/HistorySidebar";
 import type { Session } from "@/lib/types/session";
@@ -34,6 +34,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { usePractice } from "@/hooks/usePractice";
+import { CompletionCelebration } from "@/components/practice/CompletionCelebration";
+import { PracticeOfferButtons } from "@/components/practice/PracticeOfferButtons";
+import { SessionHistoryDropdown } from "@/components/practice/SessionHistoryDropdown";
+import { toast } from "sonner";
 
 export default function TutorPage() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -45,6 +50,10 @@ export default function TutorPage() {
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [messageImagesMap, setMessageImagesMap] = useState<Map<string, { url: string }[]>>(new Map());
   const errorHandler = useErrorHandler();
+
+  // Completion detection state
+  const [completionStatus, setCompletionStatus] = useState<CompletionStatus | null>(null);
+  const [showPracticeOffer, setShowPracticeOffer] = useState(false);
 
   // Use a ref to track session ID for callbacks (state updates are async)
   const sessionIdRef = useRef<string | null>(null);
@@ -71,12 +80,24 @@ export default function TutorPage() {
   const { addTurn, error: addTurnError } = useAddTurn();
   const { turns, loading: turnsLoading } = useTurns(currentSessionId);
 
+  // Practice hooks
+  const { generatePractice, startPracticeSession, isGenerating, error: practiceError } = usePractice();
+
   // Chat hook
   const { messages, append, isLoading, error, setMessages } = useChat({
     streamProtocol: 'text',
     onError: (error) => {
       console.error("Chat error:", error);
       errorHandler.showError(error);
+    },
+    onCompletionDetected: (status) => {
+      console.log("[CLIENT] Completion detected:", status);
+      setCompletionStatus(status);
+      // Don't show practice offer yet - wait for user confirmation
+    },
+    onExpressionsExtracted: (expressions) => {
+      console.log("[CLIENT] Expressions extracted:", expressions);
+      // This is now handled in onResponse callback below
     },
     onResponse: async (response) => {
       console.log("[CLIENT] 🔍 onResponse triggered");
@@ -452,7 +473,69 @@ export default function TutorPage() {
         status: "completed",
         completedAt: new Date(),
       });
+
+      // Show practice offer after session is completed
+      setShowPracticeOffer(true);
+      toast.success("Great job! Session completed.", {
+        description: "Would you like to try a practice problem?",
+      });
     }
+  };
+
+  const handlePracticeOffer = async (difficulty: "same" | "harder") => {
+    if (!user || !currentSessionId || !initialProblem) {
+      toast.error("Cannot generate practice problem");
+      return;
+    }
+
+    setShowPracticeOffer(false);
+
+    try {
+      // Generate practice problem
+      const result = await generatePractice(
+        initialProblem,
+        difficulty,
+        currentSession?.problemType
+      );
+
+      if (!result.success || !result.practiceProblem) {
+        toast.error("Failed to generate practice problem");
+        return;
+      }
+
+      // Create new practice session
+      const newSessionId = await startPracticeSession(
+        user.uid,
+        result.practiceProblem.problem,
+        (currentSession?.problemType || "other") as any,
+        currentSessionId
+      );
+
+      if (!newSessionId) {
+        toast.error("Failed to create practice session");
+        return;
+      }
+
+      // Clear current state and start new session
+      setCurrentSessionId(newSessionId);
+      sessionIdRef.current = newSessionId;
+      setInitialProblem(result.practiceProblem.problem);
+      setMessages([]);
+      setMessageImagesMap(new Map());
+      setCompletionStatus(null);
+
+      toast.success("Practice problem ready!", {
+        description: "Give it a try!",
+      });
+    } catch (error) {
+      console.error("Error creating practice session:", error);
+      toast.error("Failed to create practice session");
+    }
+  };
+
+  const handleDeclinePractice = () => {
+    setShowPracticeOffer(false);
+    toast.info("No problem! Feel free to start a new session anytime.");
   };
 
   // Show loading while checking auth
@@ -475,6 +558,16 @@ export default function TutorPage() {
           currentSessionId={currentSessionId || undefined}
         />
       </div>
+
+      {/* Session History Dropdown - Top Left (next to HistorySidebar) */}
+      {user && (
+        <div className="fixed top-4 left-20 z-50">
+          <SessionHistoryDropdown
+            userId={user.uid}
+            onSelectSession={handleSelectSession}
+          />
+        </div>
+      )}
 
       {/* Absolute positioned User Avatar - Top Right */}
       <div className="fixed top-4 right-4 z-50">
@@ -541,6 +634,24 @@ export default function TutorPage() {
       {parsingImages && (
         <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-40 bg-muted/90 backdrop-blur px-4 py-2 rounded-lg">
           <LoadingSpinner size="md" text="Parsing images with AI..." />
+        </div>
+      )}
+
+      {/* Completion Celebration */}
+      {completionStatus && completionStatus.isComplete && (
+        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md px-4">
+          <CompletionCelebration confidence={completionStatus.confidence} />
+        </div>
+      )}
+
+      {/* Practice Offer */}
+      {showPracticeOffer && (
+        <div className="absolute top-40 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md px-4">
+          <PracticeOfferButtons
+            onSelectDifficulty={handlePracticeOffer}
+            onDecline={handleDeclinePractice}
+            isLoading={isGenerating}
+          />
         </div>
       )}
 

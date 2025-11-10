@@ -54,6 +54,12 @@ export interface Session {
     consecutiveStuckTurns?: number; // Number of consecutive turns student has been stuck
     lastHintLevel?: number; // Last hint level provided (0-4)
     hintCount?: number; // Total number of hints provided this session
+    isPendingCompletion?: boolean; // AI detected completion, waiting for student confirmation
+    aiDetectedCompletion?: boolean; // AI determined the student solved the problem
+    completionConfidence?: number; // AI confidence score (0-1) for completion detection
+    explanation?: string; // Generated explanation of the solution process
+    isPracticeMode?: boolean; // Whether this is a practice problem session
+    parentSessionId?: string; // ID of the original session (for practice problems)
   };
 }
 
@@ -105,7 +111,7 @@ export interface UpdateSessionStatusData {
 export interface SessionQueryOptions {
   limit?: number;
   status?: SessionStatus;
-  orderBy?: "createdAt" | "updatedAt" | "lastActivityAt";
+  orderBy?: "createdAt" | "updatedAt" | "lastActivityAt" | "completedAt";
   orderDirection?: "asc" | "desc";
   startAfter?: string; // Document ID for pagination
 }

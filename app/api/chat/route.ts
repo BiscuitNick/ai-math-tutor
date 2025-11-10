@@ -14,6 +14,7 @@ import { checkTokenLimit, formatTokenBudget, createTokenLimitError, truncateToTo
 import { checkDailyLimit, recordProblemStarted, isNewProblem, formatDailyUsage, formatDailyLimitHeaders, createDailyLimitError } from "@/lib/daily-limits";
 import { createCostRecord, formatCost, checkBudgetThreshold } from "@/lib/cost-tracking";
 import { isValidMathStep, expressionExists } from "@/lib/utils/mathExtractor";
+import { detectProblemCompletion, buildConversationContext } from "@/lib/completion-detector";
 
 export const runtime = "edge";
 
@@ -192,6 +193,34 @@ export async function POST(req: NextRequest) {
     const stuckStatus = analyzeStuckStatus(messages);
     console.log(`Stuck detection: ${stuckStatus.level}, consecutive: ${stuckStatus.consecutiveStuckTurns}, hint level: ${stuckStatus.recommendedHintLevel}`);
 
+    // Check for problem completion (only if not stuck and has taken some turns)
+    let completionResult = null;
+    if (messages.length >= 4 && stuckStatus.level !== "severely_stuck") {
+      try {
+        const conversationContext = buildConversationContext(
+          messages.map(m => ({
+            role: m.role === "user" ? "student" : "tutor",
+            content: typeof m.content === "string" ? m.content : String(m.content)
+          }))
+        );
+
+        completionResult = await detectProblemCompletion({
+          problemText,
+          steps: extractedExpressions.map(expr => ({
+            expression: expr,
+            timestamp: new Date()
+          })),
+          lastStudentMessage: problemText,
+          conversationContext,
+        });
+
+        console.log(`Completion detection: ${completionResult.isComplete ? 'COMPLETE' : 'NOT COMPLETE'} (confidence: ${completionResult.confidence})`);
+        console.log(`Reasoning: ${completionResult.reasoning}`);
+      } catch (error) {
+        console.error("Error detecting completion:", error);
+      }
+    }
+
     // Enhance system prompt with problem type and stuck status information
     let enhancedSystemPrompt = SOCRATIC_SYSTEM_PROMPT;
     let generatedHint: string | null = null;
@@ -212,6 +241,29 @@ ${getSocraticQuestions(problemTypeInfo.primaryType).map((q, i) => `${i + 1}. ${q
 Use these as guidance for your questioning strategy.`;
 
       enhancedSystemPrompt = SOCRATIC_SYSTEM_PROMPT + typeGuidance;
+    }
+
+    // Add completion detection guidance if student appears to have solved it
+    if (completionResult && completionResult.isComplete && completionResult.confidence >= 0.75) {
+      const completionGuidance = `
+
+## COMPLETION DETECTED:
+
+Analysis indicates the student may have correctly solved the problem (confidence: ${Math.round(completionResult.confidence * 100)}%).
+
+**Final Answer Detected**: ${completionResult.finalAnswer || "Not explicitly stated"}
+
+**Reasoning**: ${completionResult.reasoning}
+
+**Your Response Should**:
+1. Acknowledge their work
+2. Ask them to confirm: "It looks like you've got the right answer! Did you solve it?"
+3. If they confirm YES, congratulate them and tell them you'll provide an explanation
+4. If they say NO or are unsure, continue guiding them
+
+DO NOT immediately provide the full explanation - wait for their confirmation first.`;
+
+      enhancedSystemPrompt = enhancedSystemPrompt + completionGuidance;
     }
 
     if (shouldProvideHint(stuckStatus)) {
@@ -403,6 +455,17 @@ Remember: NEVER solve the problem directly, even at higher hint levels.`;
         console.log('[SERVER] ✅ Added extracted expressions to response headers:', headerValue);
       } else {
         console.log('[SERVER] ⚠️ No expressions to add to headers');
+      }
+
+      // Add completion detection result to headers
+      if (completionResult) {
+        const completionData = JSON.stringify({
+          isComplete: completionResult.isComplete,
+          confidence: completionResult.confidence,
+          finalAnswer: completionResult.finalAnswer,
+        });
+        response.headers.set('X-Completion-Status', completionData);
+        console.log('[SERVER] ✅ Added completion status to headers:', completionData);
       }
 
       return response;
