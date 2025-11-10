@@ -412,7 +412,7 @@ export default function TutorPage() {
         console.log("Session created successfully:", session.id);
         setCurrentSessionId(session.id);
         sessionIdRef.current = session.id; // Update ref immediately for callbacks
-        setInitialProblem(contentForAI.slice(0, 100));
+        // Don't set initialProblem here - wait for server extraction to complete
       } else {
         console.error("Failed to create session");
         return;
@@ -516,13 +516,28 @@ export default function TutorPage() {
         return;
       }
 
+      // Strip instructional prefix (Solve, Find, Calculate, etc.)
+      const cleanProblem = result.practiceProblem.problem
+        .replace(/^(Solve|Find|Calculate|Determine|Simplify|Evaluate)\s+/i, '')
+        .trim();
+
       // Clear current state and start new session
       setCurrentSessionId(newSessionId);
       sessionIdRef.current = newSessionId;
-      setInitialProblem(result.practiceProblem.problem);
-      setMessages([]);
-      setMessageImagesMap(new Map());
+      setInitialProblem(cleanProblem);
       setCompletionStatus(null);
+
+      // AI presents the practice problem (not user asking for help)
+      const practiceMessage = {
+        id: `practice-${Date.now()}`,
+        role: "assistant" as const,
+        content: `Let's practice! Solve:\n${cleanProblem}`,
+        createdAt: new Date(),
+      };
+
+      // Set messages with AI's practice problem presentation
+      setMessages([practiceMessage]);
+      setMessageImagesMap(new Map());
 
       toast.success("Practice problem ready!", {
         description: "Give it a try!",

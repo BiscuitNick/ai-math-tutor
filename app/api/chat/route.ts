@@ -15,6 +15,7 @@ import { checkDailyLimit, recordProblemStarted, isNewProblem, formatDailyUsage, 
 import { createCostRecord, formatCost, checkBudgetThreshold } from "@/lib/cost-tracking";
 import { isValidMathStep, expressionExists } from "@/lib/utils/mathExtractor";
 import { detectProblemCompletion, buildConversationContext } from "@/lib/completion-detector";
+import { getSession } from "@/lib/firestore/sessions";
 
 export const runtime = "edge";
 
@@ -189,6 +190,34 @@ export async function POST(req: NextRequest) {
       console.error("Error detecting problem type:", error);
     }
 
+    // Fetch current session to include problem context and step history
+    let sessionContext = '';
+    if (sessionId && userId) {
+      try {
+        const session = await getSession(userId, sessionId);
+
+        if (session) {
+          // Add current problem context
+          sessionContext = `\n\nCURRENT PROBLEM:\n${session.problemText}\n`;
+
+          // Add step history if exists
+          if (session.steps && session.steps.length > 0) {
+            const stepsText = session.steps
+              .map((step, idx) => `Step ${idx + 1}: ${step.expression}`)
+              .join('\n');
+
+            sessionContext += `\nSTUDENT'S WORK SO FAR:\n${stepsText}\n`;
+          }
+
+          sessionContext += '\nGuide the student based on their current progress with this specific problem.';
+          console.log(`Session context loaded: ${session.steps?.length || 0} steps`);
+        }
+      } catch (error) {
+        console.error("Error fetching session context:", error);
+        // Continue without session context if fetch fails
+      }
+    }
+
     // Analyze stuck status from conversation history
     const stuckStatus = analyzeStuckStatus(messages);
     console.log(`Stuck detection: ${stuckStatus.level}, consecutive: ${stuckStatus.consecutiveStuckTurns}, hint level: ${stuckStatus.recommendedHintLevel}`);
@@ -224,6 +253,11 @@ export async function POST(req: NextRequest) {
     // Enhance system prompt with problem type and stuck status information
     let enhancedSystemPrompt = SOCRATIC_SYSTEM_PROMPT;
     let generatedHint: string | null = null;
+
+    // Add session context (problem and steps) if available
+    if (sessionContext) {
+      enhancedSystemPrompt += sessionContext;
+    }
 
     // Add problem-type-specific guidance
     if (problemTypeInfo && problemTypeInfo.confidence > 0.6) {
