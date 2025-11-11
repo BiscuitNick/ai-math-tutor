@@ -27,12 +27,12 @@ export default function TestChatPage() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (data: { text: string; images: File[] }) => {
     // Add student message
     const studentMessage: Message = {
       id: Date.now().toString(),
       role: "student",
-      content,
+      content: data.text,
       timestamp: new Date()
     };
     setMessages(prev => [...prev, studentMessage]);

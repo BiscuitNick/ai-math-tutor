@@ -13,17 +13,64 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    // Validation helpers
+    function isValidSessionStatus(status) {
+      return status in ['in-progress', 'completed', 'abandoned'];
+    }
+
+    function isValidProblemType(type) {
+      return type in ['algebra', 'geometry', 'word-problem', 'calculus', 'statistics', 'other'];
+    }
+
+    function isValidSpeaker(speaker) {
+      return speaker in ['user', 'assistant'];
+    }
+
     // Users collection - users can only access their own data
     match /users/{userId} {
       allow read, write: if isAuthenticated() && isOwner(userId);
 
       // Sessions subcollection - users can only access their own sessions
       match /sessions/{sessionId} {
-        allow read, write: if isAuthenticated() && isOwner(userId);
+        allow read: if isAuthenticated() && isOwner(userId);
+
+        // Create with validation
+        allow create: if isAuthenticated() && isOwner(userId)
+          && request.resource.data.keys().hasAll(['problemText', 'problemType', 'status', 'createdAt', 'updatedAt', 'turnCount', 'hints', 'lastActivityAt'])
+          && request.resource.data.problemText is string
+          && request.resource.data.problemText.size() >= 5
+          && request.resource.data.problemText.size() <= 500
+          && isValidProblemType(request.resource.data.problemType)
+          && isValidSessionStatus(request.resource.data.status)
+          && request.resource.data.turnCount is int
+          && request.resource.data.turnCount >= 0
+          && request.resource.data.turnCount <= 50
+          && request.resource.data.hints is list;
+
+        // Update with validation - ensure turn count only increases
+        allow update: if isAuthenticated() && isOwner(userId)
+          && isValidSessionStatus(request.resource.data.status)
+          && request.resource.data.turnCount >= resource.data.turnCount
+          && request.resource.data.turnCount <= 50;
+
+        // Allow delete
+        allow delete: if isAuthenticated() && isOwner(userId);
 
         // Turns subcollection - users can only access turns in their own sessions
         match /turns/{turnId} {
-          allow read, write: if isAuthenticated() && isOwner(userId);
+          allow read: if isAuthenticated() && isOwner(userId);
+
+          // Create with validation
+          allow create: if isAuthenticated() && isOwner(userId)
+            && request.resource.data.keys().hasAll(['speaker', 'message', 'timestamp'])
+            && isValidSpeaker(request.resource.data.speaker)
+            && request.resource.data.message is string
+            && request.resource.data.message.size() > 0
+            && request.resource.data.message.size() <= 5000
+            && request.resource.data.timestamp is timestamp;
+
+          // Generally turns should not be updated/deleted, but allow for admin corrections
+          allow update, delete: if isAuthenticated() && isOwner(userId);
         }
       }
     }

@@ -1,12 +1,24 @@
 import * as admin from "firebase-admin";
-import serviceAccount from "../serviceAccountKey.json";
 
 // Initialize Firebase Admin SDK (server-side only)
 if (!admin.apps.length) {
   try {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-    });
+    // Use environment variables for production deployment
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY
+      ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+      : undefined;
+
+    if (!privateKey || !process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL) {
+      console.error("Firebase Admin SDK configuration is incomplete. Please check environment variables.");
+    } else {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: privateKey,
+        }),
+      });
+    }
   } catch (error) {
     console.error("Firebase admin initialization error:", error);
   }
