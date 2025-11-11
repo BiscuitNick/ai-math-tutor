@@ -17,7 +17,7 @@ import { isValidMathStep, expressionExists } from "@/lib/utils/mathExtractor";
 import { detectProblemCompletion, buildConversationContext } from "@/lib/completion-detector";
 import { getSession } from "@/lib/firestore/sessions";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // Configuration
 const MAX_TOKENS = 4000;
